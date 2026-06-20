@@ -1,20 +1,24 @@
-import { Gender } from '../../types';
-import { cn } from '../../lib/utils';
-import { motion } from 'motion/react';
+import { Gender } from "../types";
+import { cn } from "../lib/utils";
+import { motion } from "motion/react";
 
 interface TopTabsProps {
-  activeGender: Gender | 'All';
-  setActiveGender: (gender: Gender | 'All') => void;
+  activeGender: Gender | "All";
+  setActiveGender: (gender: Gender | "All") => void;
   isDarkMode?: boolean;
 }
 
-export default function TopTabs({ activeGender, setActiveGender, isDarkMode = false }: TopTabsProps) {
-  const tabs: { value: Gender | 'All'; label: string }[] = [
-    { value: 'All', label: 'All Audianc' },
-    { value: 'Male', label: 'Masculine' },
-    { value: 'Female', label: 'Feminine' },
-    { value: 'Unisex', label: 'Unisex Blend' },
-    { value: 'Kids', label: 'Children' },
+export default function TopTabs({
+  activeGender,
+  setActiveGender,
+  isDarkMode = false,
+}: TopTabsProps) {
+  const tabs: { value: Gender | "All"; label: string }[] = [
+    { value: "All", label: "All Audianc" },
+    { value: "Male", label: "Masculine" },
+    { value: "Female", label: "Feminine" },
+    { value: "Unisex", label: "Unisex Blend" },
+    { value: "Kids", label: "Children" },
   ];
 
   return (
@@ -27,16 +31,16 @@ export default function TopTabs({ activeGender, setActiveGender, isDarkMode = fa
             onClick={() => setActiveGender(tab.value)}
             className={cn(
               "relative px-4 py-2 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap focus:outline-none",
-              isActive 
-                ? "text-white dark:text-black" 
-                : "text-gray-500 hover:text-[#111111] dark:hover:text-[#c19253]/90 hover:bg-gray-100/30 dark:hover:bg-[#c19253]/10"
+              isActive
+                ? "text-white dark:text-black"
+                : "text-gray-500 hover:text-[#111111] dark:hover:text-[#c19253]/90 hover:bg-gray-100/30 dark:hover:bg-[#c19253]/10",
             )}
           >
             {isActive && (
               <motion.div
                 layoutId="activeTopTab"
                 className="absolute inset-0 rounded-full shadow-md z-0 bg-[#111111] dark:bg-[#c19253]"
-                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                transition={{ type: "spring", stiffness: 350, damping: 30 }}
               />
             )}
             <span className="relative z-10">{tab.label}</span>

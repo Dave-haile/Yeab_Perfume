@@ -2,6 +2,33 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+/* Register custom utilities so dark:bg-primary, dark:text-primary, dark:border-custom work as Tailwind variants */
+@utility bg-primary {
+  background-color: rgb(var(--bg-primary));
+}
+
+@utility text-primary {
+  color: rgb(var(--text-primary));
+}
+
+@utility border-custom {
+  border-color: rgb(var(--border-primary));
+}
+
+@layer base {
+  :root {
+    --bg-primary: 250, 248, 245;
+    --text-primary: 17, 17, 17;
+    --border-primary: 236, 235, 231;
+  }
+
+  .dark {
+    --bg-primary: 0, 0, 0;
+    --text-primary: 193, 146, 83;
+    --border-primary: 193, 146, 83;
+  }
+}
+
 /* Thin and colorful scrollbar for the tab navigation container */
 .luxury-scrollbar {
   /* Firefox */
@@ -15,8 +42,10 @@
 
 /* Chrome, Edge, and Safari */
 .luxury-scrollbar::-webkit-scrollbar {
-  height: 4px; /* thin height for horizontal scroll */
-  width: 4px;  /* thin width for vertical scroll if any */
+  height: 4px;
+  /* thin height for horizontal scroll */
+  width: 4px;
+  /* thin width for vertical scroll if any */
 }
 
 .luxury-scrollbar::-webkit-scrollbar-track {
@@ -34,5 +63,6 @@
 }
 
 .luxury-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #d4a96b; /* slightly lighter gold on hover */
+  background: #d4a96b;
+  /* slightly lighter gold on hover */
 }
