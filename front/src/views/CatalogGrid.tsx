@@ -1,23 +1,24 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { SlidersHorizontal, Info } from 'lucide-react';
-import { Category, Gender, Perfume } from '../types';
-import HorizontalSyncGallery from '../components/perfume/HorizontalSyncGallery';
-import { PerfumeCard } from '../components/perfume/PerfumeCard';
-import { cn } from '../lib/utils';
+import React from "react";
+import { motion } from "motion/react";
+import { SlidersHorizontal, Info } from "lucide-react";
+import { Category, Gender, Perfume } from "../types";
+import HorizontalSyncGallery from "../components/perfume/HorizontalSyncGallery";
+import { PerfumeCard } from "../components/perfume/PerfumeCard";
+import { cn } from "../lib/utils";
 
 interface CatalogGridProps {
   filteredPerfumes: Perfume[];
   loading: boolean;
   colors: Record<string, string>;
   isDarkMode: boolean;
-  activeCategory: Category | 'All';
-  setActiveCategory: (cat: Category | 'All') => void;
-  activeGender: Gender | 'All';
-  setActiveGender: (gender: Gender | 'All') => void;
+  activeCategory: Category | "All";
+  setActiveCategory: (cat: Category | "All") => void;
+  activeGender: Gender | "All";
+  setActiveGender: (gender: Gender | "All") => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   setInspectPerfume: (perfume: Perfume) => void;
+  catalogView: boolean;
 }
 
 export default function CatalogGrid({
@@ -31,13 +32,13 @@ export default function CatalogGrid({
   setActiveGender,
   searchQuery,
   setSearchQuery,
-  setInspectPerfume
+  setInspectPerfume,
+  catalogView,
 }: CatalogGridProps) {
-  
-  const activeFiltersCount = 
-    (activeCategory !== 'All' ? 1 : 0) + 
-    (activeGender !== 'All' ? 1 : 0) + 
-    (searchQuery.trim() !== '' ? 1 : 0);
+  const activeFiltersCount =
+    (activeCategory !== "All" ? 1 : 0) +
+    (activeGender !== "All" ? 1 : 0) +
+    (searchQuery.trim() !== "" ? 1 : 0);
 
   return (
     <motion.div
@@ -57,23 +58,23 @@ export default function CatalogGrid({
               Active constraints
             </span>
 
-            {activeCategory !== 'All' && (
-              <span className="text-[9px] uppercase font-bold px-3 py-1 bg-[#c19253] text-black rounded-full tracking-wider shadow-xs font-black">
+            {activeCategory !== "All" && (
+              <span className="text-[9px] uppercase font-bold px-3 py-1 bg-[#c19253] text-black rounded-full tracking-wider shadow-xs">
                 Collection: {activeCategory}
               </span>
             )}
-            {activeGender !== 'All' && (
-              <span className="text-[9px] uppercase font-bold px-3 py-1 bg-black text-white dark:bg-black dark:text-[#c19253] dark:border dark:border-[#c19253]/40 rounded-full tracking-wider shadow-xs font-black">
+            {activeGender !== "All" && (
+              <span className="text-[9px] uppercase font-bold px-3 py-1 bg-black text-white dark:bg-black dark:text-[#c19253] dark:border dark:border-[#c19253]/40 rounded-full tracking-wider shadow-xs">
                 {activeGender} Audience
               </span>
             )}
-            {searchQuery.trim() !== '' && (
+            {searchQuery.trim() !== "" && (
               <div className="flex items-center gap-1">
                 <span className="text-[9px] uppercase font-bold px-3 py-1 rounded-full border bg-gray-100 border-[#ecebe7] text-gray-700 dark:bg-black dark:border-[#c19253]/30 dark:text-gray-300">
                   Term: "{searchQuery}"
                 </span>
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchQuery("")}
                   className="text-xs font-extrabold pr-2 text-gray-400 hover:text-black dark:text-[#c19253] dark:hover:text-white"
                   title="Clear search term"
                 >
@@ -83,9 +84,9 @@ export default function CatalogGrid({
             )}
             <button
               onClick={() => {
-                setActiveCategory('All');
-                setActiveGender('All');
-                setSearchQuery('');
+                setActiveCategory("All");
+                setActiveGender("All");
+                setSearchQuery("");
               }}
               className="text-[9px] uppercase font-bold text-red-500 tracking-wider underline underline-offset-4"
             >
@@ -104,46 +105,49 @@ export default function CatalogGrid({
           </div>
         ) : filteredPerfumes.length > 0 ? (
           <div className="space-y-12">
-            {/* SECTION 1: Interlocking Draggable Horizontal Image Gallery with Momentum Snapping */}
-            <div className="bg-[#FAF9F5]/40 dark:bg-black/40 rounded-3xl p-4 sm:p-6 border border-[#ecebe7]/40 dark:border-[#c19253]/25 backdrop-blur-sm">
-              <HorizontalSyncGallery
-                perfumes={filteredPerfumes}
-                colors={colors}
-                onInspect={setInspectPerfume}
-                isDarkMode={isDarkMode}
-              />
-            </div>
-
-            {/* SECTION 2: Grid view with vertical scroll layouts */}
-            <div className="space-y-6 pt-4 border-t border-[#ecebe7]/60 dark:border-[#c19253]/20">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h3 className="font-serif text-xl font-extrabold text-[#111] dark:text-[#c19253]">
-                    Atelier Formulation Grid
-                  </h3>
-                  <p className="text-xs text-gray-400">
-                    Explore all formulations matching your active constraints
-                  </p>
-                </div>
-                
-                <div className="text-[10px] font-mono font-bold uppercase px-3 py-1.5 rounded-xl bg-[#FAF9F5] border border-[#ecebe7] text-gray-500 dark:bg-black dark:border-[#c19253]/30 dark:text-[#c19253]">
-                  Showing {filteredPerfumes.length} profiles
-                </div>
+            {catalogView ? (
+              <div className="bg-[#FAF9F5]/40 dark:bg-black/40 rounded-3xl border border-[#ecebe7]/40 dark:border-[#c19253]/25 backdrop-blur-sm">
+                <HorizontalSyncGallery
+                  perfumes={filteredPerfumes}
+                  colors={colors}
+                  onInspect={setInspectPerfume}
+                  isDarkMode={isDarkMode}
+                />
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredPerfumes.map((perfume) => (
-                  <div key={perfume.id} className="transition-all duration-300">
-                    <PerfumeCard
-                      perfume={perfume}
-                      colors={colors}
-                      onClick={() => setInspectPerfume(perfume)}
-                      isDarkMode={isDarkMode}
-                    />
+            ) : (
+              <div className="space-y-6 pt-4 border-t border-[#ecebe7]/60 dark:border-[#c19253]/20">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="font-serif text-xl font-extrabold text-[#111] dark:text-[#c19253]">
+                      Atelier Formulation Grid
+                    </h3>
+                    <p className="text-xs text-gray-400">
+                      Explore all formulations matching your active constraints
+                    </p>
                   </div>
-                ))}
+
+                  <div className="text-[10px] font-mono font-bold uppercase px-3 py-1.5 rounded-xl bg-[#FAF9F5] border border-[#ecebe7] text-gray-500 dark:bg-black dark:border-[#c19253]/30 dark:text-[#c19253]">
+                    Showing {filteredPerfumes.length} profiles
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {filteredPerfumes.map((perfume) => (
+                    <div
+                      key={perfume.id}
+                      className="transition-all duration-300"
+                    >
+                      <PerfumeCard
+                        perfume={perfume}
+                        colors={colors}
+                        onClick={() => setInspectPerfume(perfume)}
+                        isDarkMode={isDarkMode}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ) : (
           <div className="border border-dashed p-16 rounded-3xl text-center flex flex-col items-center justify-center max-w-xl mx-auto my-12 bg-[#FAF9F5] border-[#ecebe7] dark:bg-black dark:border-[#c19253]/35">
@@ -152,13 +156,14 @@ export default function CatalogGrid({
               No essence found
             </h4>
             <p className="text-xs leading-relaxed mb-6 text-gray-500 dark:text-gray-400">
-              No formulation matched your active selection. Clear query tags or register a custom formulation row inside the master workspace.
+              No formulation matched your active selection. Clear query tags or
+              register a custom formulation row inside the master workspace.
             </p>
             <button
               onClick={() => {
-                setActiveCategory('All');
-                setActiveGender('All');
-                setSearchQuery('');
+                setActiveCategory("All");
+                setActiveGender("All");
+                setSearchQuery("");
               }}
               className="px-6 py-3 rounded-xl text-xs font-bold tracking-widest uppercase shadow-sm transition-all duration-300 bg-black hover:bg-neutral-800 text-white dark:bg-[#c19253] dark:text-black dark:hover:bg-white"
             >

@@ -1,7 +1,11 @@
 export type Gender = "Male" | "Female" | "Kids" | "Unisex";
 export type DayNight = "Day" | "Night" | "Both";
 export type Season = "Winter" | "Spring" | "Summer" | "Autumn";
-export type Category = "Perfume" | "Brand Perfume" | "Luxury Perfume";
+export type Category =
+  | "Perfume"
+  | "Brand Perfume"
+  | "Luxury Perfume"
+  | "Ultra-Luxury Perfume";
 
 export interface Perfume {
   id: string;

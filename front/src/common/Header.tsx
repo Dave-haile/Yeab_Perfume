@@ -5,12 +5,27 @@ import {
   Menu,
   Moon,
   PanelLeftOpen,
+  SlidersHorizontal,
   Sparkles,
   Sun,
 } from "lucide-react";
 import { useTheme } from "../components/ThemeProvider";
 import { cn } from "../lib/utils";
 import { useNavigate } from "react-router-dom";
+import { Perfume } from "../types";
+
+interface HeaderProps {
+  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  isSidebarVisible: boolean;
+  setIsSidebarVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  currentView: string;
+  setSlideIndex: React.Dispatch<React.SetStateAction<number>>;
+  perfumes: Perfume[];
+  setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
+  showFilters: boolean;
+  setCatalogView: React.Dispatch<React.SetStateAction<boolean>>;
+  catalogView: boolean;
+}
 
 export const Header = ({
   setIsSidebarOpen,
@@ -18,12 +33,15 @@ export const Header = ({
   setIsSidebarVisible,
   currentView,
   setSlideIndex,
-  perfumes,
-}) => {
+  setShowFilters,
+  showFilters,
+  catalogView,
+  setCatalogView,
+}: HeaderProps) => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   return (
-    <header className="h-20 border-b flex items-center justify-between px-6 sm:px-8 z-20 flex-shrink-0 select-none transition-colors duration-300 bg-white/80 border-[#ecebe7] text-[#111111] dark:bg-black dark:border-[#c19253]/20 dark:text-[#c19253]">
+    <header className="h-20 border-b flex items-center justify-between px-6 sm:px-8 z-20 shrink-0 select-none transition-colors duration-300 bg-white/80 border-[#ecebe7] text-[#111111] dark:bg-black dark:border-[#c19253]/20 dark:text-[#c19253]">
       <div className="flex items-center gap-4">
         {/* Hamburger button for smaller layout devices */}
         <button
@@ -69,7 +87,7 @@ export const Header = ({
 
       {/* VIEW MODE toggling pills & Theme Toggle */}
       <div className="flex items-center gap-3 max-w-full">
-        <div className="p-1 rounded-full flex gap-1 border shadow-inner transition-colors duration-300 bg-[#f0eee8] border-black/[0.03] dark:bg-black dark:border-[#c19253]/20 max-w-full overflow-x-auto luxury-scrollbar whitespace-nowrap">
+        <div className="p-1 rounded-full flex gap-1 border shadow-inner transition-colors duration-300 bg-[#f0eee8] border-black/3 dark:bg-black dark:border-[#c19253]/20 max-w-full overflow-x-auto luxury-scrollbar whitespace-nowrap">
           <button
             onClick={() => {
               navigate("/view/grid");
@@ -133,9 +151,45 @@ export const Header = ({
         </div>
 
         {/* Visual indicators */}
-        <div className="hidden sm:flex h-10 px-4 rounded-xl border items-center gap-2 text-[11px] font-bold transition-all duration-300 bg-[#FAF9F5] border-[#ecebe7] text-gray-600 dark:bg-black dark:border-[#c19253]/20 dark:text-[#c19253]">
-          <Sparkles size={12} className="text-[#c19253]" />
-          <span>{perfumes.length} Fragrances</span>
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border shadow-xs select-none shrink-0 w-fit",
+            showFilters
+              ? "bg-[#111111] text-white border-black dark:bg-[#c19253] dark:text-black dark:border-transparent"
+              : "bg-[#fcfcfa] border-[#ecebe7] text-gray-500 hover:text-black dark:bg-black dark:border-[#c19253]/30 dark:text-[#c19253] dark:hover:bg-[#c19253]/15",
+          )}
+        >
+          <SlidersHorizontal size={12} />
+          {showFilters ? "Hide Filters" : "More Filters"}
+        </button>
+        <div className="p-1 rounded-full flex gap-1 border shadow-inner transition-colors duration-300 bg-[#f0eee8] border-black/3 dark:bg-black dark:border-[#c19253]/20 max-w-full overflow-x-auto luxury-scrollbar whitespace-nowrap">
+          <button
+            onClick={() => {
+              setCatalogView(true);
+            }}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all",
+              catalogView
+                ? "bg-white text-[#111111] shadow-sm font-black dark:bg-[#c19253] dark:text-black dark:shadow-sm dark:font-black"
+                : "text-gray-400 dark:text-[#c19253]/60",
+            )}
+          >
+            Gallery
+          </button>
+          <button
+            onClick={() => {
+              setCatalogView(false);
+            }}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all",
+              catalogView
+                ? "text-gray-400 dark:text-[#c19253]/60"
+                : "bg-white text-[#111111] shadow-sm font-black dark:bg-[#c19253] dark:text-black dark:shadow-sm dark:font-black",
+            )}
+          >
+            Grid
+          </button>
         </div>
 
         {/* Theme switcher */}
