@@ -6,6 +6,8 @@ export type Category =
   | "Brand Perfume"
   | "Luxury Perfume"
   | "Ultra-Luxury Perfume";
+export type StockStatus = "In Stock" | "Low Stock" | "Out of Stock";
+export type UserRole = "admin" | "staff";
 
 export interface Perfume {
   id: string;
@@ -32,4 +34,23 @@ export interface Perfume {
     middle: { name: string; iconUrl: string }[];
     base: { name: string; iconUrl: string }[];
   };
+  stockStatus?: StockStatus;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+export interface StaffRequest {
+  id: string;
+  perfumeId: string;
+  perfumeName: string;
+  station?: string;
+  resolved: boolean;
+  time: string;
+  createdAt: string;
+  resolvedAt?: string;
 }

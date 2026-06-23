@@ -11,35 +11,33 @@ import {
 } from "lucide-react";
 import { useTheme } from "../components/ThemeProvider";
 import { cn } from "../lib/utils";
-import { useNavigate } from "react-router-dom";
-import { Perfume } from "../types";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useApp } from "./AppContext";
 
-interface HeaderProps {
-  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isSidebarVisible: boolean;
-  setIsSidebarVisible: React.Dispatch<React.SetStateAction<boolean>>;
-  currentView: string;
-  setSlideIndex: React.Dispatch<React.SetStateAction<number>>;
-  perfumes: Perfume[];
-  setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
-  showFilters: boolean;
-  setCatalogView: React.Dispatch<React.SetStateAction<boolean>>;
-  catalogView: boolean;
-}
-
-export const Header = ({
-  setIsSidebarOpen,
-  isSidebarVisible,
-  setIsSidebarVisible,
-  currentView,
-  setSlideIndex,
-  setShowFilters,
-  showFilters,
-  catalogView,
-  setCatalogView,
-}: HeaderProps) => {
+export const Header = () => {
   const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const {
+    setIsSidebarOpen,
+    isSidebarVisible,
+    setIsSidebarVisible,
+    setSlideIndex,
+    setShowFilters,
+    showFilters,
+    catalogView,
+    setCatalogView,
+  } = useApp();
+
+  const currentView =
+    location.pathname === "/view/presenter"
+      ? "presenter"
+      : location.pathname === "/view/brand"
+        ? "brand-presenter"
+        : location.pathname === "/view/luxury"
+          ? "luxury-presenter"
+          : "catalog";
+
   return (
     <header className="h-20 border-b flex items-center justify-between px-6 sm:px-8 z-20 shrink-0 select-none transition-colors duration-300 bg-white/80 border-[#ecebe7] text-[#111111] dark:bg-black dark:border-[#c19253]/20 dark:text-[#c19253]">
       <div className="flex items-center gap-4">

@@ -1,8 +1,18 @@
-import React, { useEffect } from 'react';
-import { Perfume } from '../../types';
-import { motion } from 'motion/react';
-import { X, Star, Flame, Wind, Clock, Sun, Moon, Sparkles, Award } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import React, { useEffect } from "react";
+import { Perfume } from "../../types";
+import { motion } from "motion/react";
+import {
+  X,
+  Star,
+  Flame,
+  Wind,
+  Clock,
+  Sun,
+  Moon,
+  Sparkles,
+  Award,
+} from "lucide-react";
+import { cn, imageUrl } from "../../lib/utils";
 
 interface PerfumeDetailsModalProps {
   perfume: Perfume;
@@ -11,12 +21,17 @@ interface PerfumeDetailsModalProps {
   isDarkMode?: boolean;
 }
 
-export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMode = false }: PerfumeDetailsModalProps) {
+export default function PerfumeDetailsModal({
+  perfume,
+  onClose,
+  colors,
+  isDarkMode = false,
+}: PerfumeDetailsModalProps) {
   useEffect(() => {
     // Disable background scroll when modal open
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, []);
 
@@ -58,7 +73,7 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
           <div className="flex-1 flex items-center justify-center py-6 w-full h-full max-h-[320px] overflow-hidden rounded-2xl">
             <motion.img
               layoutId={`image-${perfume.id}`}
-              src={perfume.mainImage}
+              src={imageUrl(perfume.mainImage)}
               alt={perfume.name}
               className="w-full h-full object-cover rounded-2xl drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
               referrerPolicy="no-referrer"
@@ -93,7 +108,6 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
         {/* Right pane - Detailed Fragrance Profile Scroll area */}
         <div className="w-full md:w-[55%] flex flex-col h-full transition-colors duration-300 bg-white dark:bg-black">
           <div className="flex-1 overflow-y-auto p-6 sm:p-8 lg:p-10 space-y-8 custom-scrollbar">
-            
             {/* Description card */}
             <div>
               <p className="text-xs sm:text-sm leading-relaxed italic border-l-2 border-[#c19253] pl-4 transition-colors text-gray-600 dark:text-gray-300">
@@ -109,7 +123,8 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
               </h3>
               <div className="space-y-3.5">
                 {perfume.accords.map((accord, idx) => {
-                  const barColor = colors[accord.name] || accord.color || '#ecebe7';
+                  const barColor =
+                    colors[accord.name] || accord.color || "#ecebe7";
                   return (
                     <div key={idx} className="space-y-1.5">
                       <div className="flex justify-between items-center text-[10px] sm:text-xs">
@@ -124,7 +139,11 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${accord.value}%` }}
-                          transition={{ duration: 1.2, delay: idx * 0.05, ease: 'easeOut' }}
+                          transition={{
+                            duration: 1.2,
+                            delay: idx * 0.05,
+                            ease: "easeOut",
+                          }}
                           className="h-full rounded-full"
                           style={{ backgroundColor: barColor }}
                         />
@@ -196,9 +215,9 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
                   <div
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl border text-xs font-bold transition-all shadow-sm",
-                      perfume.dayNight !== 'Night'
+                      perfume.dayNight !== "Night"
                         ? "bg-[#fffdeb] border-[#fbeb66] text-[#c0a200] dark:bg-[#c19253]/15 dark:border-[#c19253]/45 dark:text-[#c19253]"
-                        : "bg-gray-50 border-gray-100 text-gray-300 dark:bg-black dark:border-gray-800 dark:text-gray-500"
+                        : "bg-gray-50 border-gray-100 text-gray-300 dark:bg-black dark:border-gray-800 dark:text-gray-500",
                     )}
                   >
                     <Sun size={14} /> Day
@@ -206,9 +225,9 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
                   <div
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl border text-xs font-bold transition-all shadow-sm",
-                      perfume.dayNight !== 'Day'
+                      perfume.dayNight !== "Day"
                         ? "bg-[#161a29] border-[#22293e] text-white dark:bg-[#c19253] dark:border-transparent dark:text-black dark:font-black"
-                        : "bg-gray-50 border-gray-100 text-gray-300 dark:bg-black dark:border-gray-800 dark:text-gray-500"
+                        : "bg-gray-50 border-gray-100 text-gray-300 dark:bg-black dark:border-gray-800 dark:text-gray-500",
                     )}
                   >
                     <Moon size={14} /> Night
@@ -221,7 +240,7 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
                   Best Seasons
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
-                  {['Winter', 'Spring', 'Summer', 'Autumn'].map((season) => {
+                  {["Winter", "Spring", "Summer", "Autumn"].map((season) => {
                     const isWearing = perfume.seasons.includes(season as any);
                     return (
                       <div
@@ -230,7 +249,7 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
                           "py-2 px-1 text-center rounded-lg text-[10px] font-bold border uppercase tracking-wider transition-all",
                           isWearing
                             ? "bg-white border-[#111111] text-[#111111] shadow-sm font-black dark:bg-[#c19253] dark:border-transparent dark:text-black"
-                            : "bg-[#fcfcfa] text-gray-300 border-[#f3f2ee] dark:bg-black dark:text-gray-600 dark:border-[#c19253]/20"
+                            : "bg-[#fcfcfa] text-gray-300 border-[#f3f2ee] dark:bg-black dark:text-gray-600 dark:border-[#c19253]/20",
                         )}
                       >
                         {season}
@@ -248,12 +267,26 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
                 Fragrance Note Composition
               </h3>
               <div className="space-y-6">
-                <NotesSubtier title="Top Notes" subtitle="First impression (0-30 mins)" notes={perfume.notes.top} isDarkMode={isDarkMode} />
-                <NotesSubtier title="Heart Notes" subtitle="Core signature (1 hr-4 hrs)" notes={perfume.notes.middle} isDarkMode={isDarkMode} />
-                <NotesSubtier title="Base Notes" subtitle="Lasting sillage (4 hrs-12 hrs)" notes={perfume.notes.base} isDarkMode={isDarkMode} />
+                <NotesSubtier
+                  title="Top Notes"
+                  subtitle="First impression (0-30 mins)"
+                  notes={perfume.notes.top}
+                  isDarkMode={isDarkMode}
+                />
+                <NotesSubtier
+                  title="Heart Notes"
+                  subtitle="Core signature (1 hr-4 hrs)"
+                  notes={perfume.notes.middle}
+                  isDarkMode={isDarkMode}
+                />
+                <NotesSubtier
+                  title="Base Notes"
+                  subtitle="Lasting sillage (4 hrs-12 hrs)"
+                  notes={perfume.notes.base}
+                  isDarkMode={isDarkMode}
+                />
               </div>
             </div>
-
           </div>
         </div>
       </motion.div>
@@ -261,7 +294,17 @@ export default function PerfumeDetailsModal({ perfume, onClose, colors, isDarkMo
   );
 }
 
-function NotesSubtier({ title, subtitle, notes, isDarkMode }: { title: string; subtitle: string; notes: { name: string; iconUrl: string }[]; isDarkMode: boolean }) {
+function NotesSubtier({
+  title,
+  subtitle,
+  notes,
+  isDarkMode,
+}: {
+  title: string;
+  subtitle: string;
+  notes: { name: string; iconUrl: string }[];
+  isDarkMode: boolean;
+}) {
   if (!notes || notes.length === 0) return null;
   return (
     <div className="border p-5 rounded-2xl transition-colors duration-300 bg-[#fcfcfa] border-[#ecebe7] dark:bg-black dark:border-[#c19253]/25">
@@ -282,7 +325,8 @@ function NotesSubtier({ title, subtitle, notes, isDarkMode }: { title: string; s
                 alt={note.name}
                 className="w-full h-full object-cover rounded-full"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100';
+                  (e.target as HTMLImageElement).src =
+                    "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100";
                 }}
               />
             </div>

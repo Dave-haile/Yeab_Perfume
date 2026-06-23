@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
-import { Perfume, Gender, Category, DayNight, Season } from '../../types';
-import { Plus, Trash2, Palette, Image as ImageIcon, Edit2, X, Save, Star, ShieldCheck, Lock, LogOut } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '../../lib/utils';
-import { safeStorage } from '../../lib/storage';
+import React, { useState, useRef } from "react";
+import { Perfume, Gender, Category, DayNight, Season } from "../../types";
+import {
+  Plus,
+  Trash2,
+  Palette,
+  Image as ImageIcon,
+  Edit2,
+  X,
+  Save,
+  Star,
+  ShieldCheck,
+  Lock,
+  LogOut,
+  Upload,
+  Loader2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { cn, imageUrl } from "../../lib/utils";
+import { safeStorage } from "../../lib/storage";
+import { uploadService } from "../../lib/api";
 
 interface AdminPortalProps {
   perfumes: Perfume[];
@@ -24,62 +39,114 @@ export default function AdminPortal({
   logo,
   setLogo,
   onClose,
-  isDarkMode = false
+  isDarkMode = false,
 }: AdminPortalProps) {
-  const [token, setToken] = useState<string | null>(safeStorage.getItem('adminToken'));
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState('');
+  const [token, setToken] = useState<string | null>(
+    safeStorage.getItem("adminToken"),
+  );
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
 
   // Accord creation state
-  const [newAccordName, setNewAccordName] = useState('');
-  const [newAccordColor, setNewAccordColor] = useState('#c19253');
+  const [newAccordName, setNewAccordName] = useState("");
+  const [newAccordColor, setNewAccordColor] = useState("#c19253");
 
   // Logo update state
-  const [newLogoUrl, setNewLogoUrl] = useState(logo || '');
+  const [newLogoUrl, setNewLogoUrl] = useState(logo || "");
+
+  // Image upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Form states for adding/editing perfumes
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingPerfume, setEditingPerfume] = useState<Partial<Perfume> | null>(null);
+  const [editingPerfume, setEditingPerfume] = useState<Partial<Perfume> | null>(
+    null,
+  );
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const url = await uploadService.uploadImage(file);
+      setEditingPerfume((prev) => (prev ? { ...prev, mainImage: url } : prev));
+    } catch (err) {
+      console.error("Upload failed", err);
+      alert("Image upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+      // Reset the input so the same file can be picked again
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const defaultPerfumeState = (): Partial<Perfume> => ({
-    name: '',
-    brand: '',
+    name: "",
+    brand: "",
     price: 3200,
-    code: 'P-' + Math.floor(10 + Math.random() * 89),
-    gender: 'Unisex',
-    category: 'Perfume',
-    description: 'An elegant formulation composed of handpicked oils and resins.',
+    code: "P-" + Math.floor(10 + Math.random() * 89),
+    gender: "Unisex",
+    category: "Perfume",
+    description:
+      "An elegant formulation composed of handpicked oils and resins.",
     rating: 4.5,
-    mainImage: 'https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600',
-    galleryImages: ['https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600'],
-    accords: [
-      { name: 'Woody', value: 80, color: '#8d6e63' },
-      { name: 'Spicy', value: 60, color: '#d84315' }
+    mainImage:
+      "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600",
+    galleryImages: [
+      "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600",
     ],
-    fragranceProfile: { longevity: '8H', projection: 'Moderate', sillage: 'Moderate' },
-    dayNight: 'Both',
-    seasons: ['Autumn', 'Winter'],
+    accords: [
+      { name: "Woody", value: 80, color: "#8d6e63" },
+      { name: "Spicy", value: 60, color: "#d84315" },
+    ],
+    fragranceProfile: {
+      longevity: "8H",
+      projection: "Moderate",
+      sillage: "Moderate",
+    },
+    dayNight: "Both",
+    seasons: ["Autumn", "Winter"],
     notes: {
-      top: [{ name: 'Bergamot', iconUrl: 'https://images.unsplash.com/photo-1577234286142-fc0ee054174d?w=100' }],
-      middle: [{ name: 'Lavender', iconUrl: 'https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100' }],
-      base: [{ name: 'Cedarwood', iconUrl: 'https://images.unsplash.com/photo-1550605995-1c390543f324?w=100' }]
-    }
+      top: [
+        {
+          name: "Bergamot",
+          iconUrl:
+            "https://images.unsplash.com/photo-1577234286142-fc0ee054174d?w=100",
+        },
+      ],
+      middle: [
+        {
+          name: "Lavender",
+          iconUrl:
+            "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100",
+        },
+      ],
+      base: [
+        {
+          name: "Cedarwood",
+          iconUrl:
+            "https://images.unsplash.com/photo-1550605995-1c390543f324?w=100",
+        },
+      ],
+    },
   });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin') {
-      safeStorage.setItem('adminToken', 'yeab_token_sec');
-      setToken('yeab_token_sec');
-      setAuthError('');
+    if (username === "admin" && password === "admin") {
+      safeStorage.setItem("adminToken", "yeab_token_sec");
+      setToken("yeab_token_sec");
+      setAuthError("");
     } else {
-      setAuthError('Incorrect formulation master credentials.');
+      setAuthError("Incorrect formulation master credentials.");
     }
   };
 
   const handleLogout = () => {
-    safeStorage.removeItem('adminToken');
+    safeStorage.removeItem("adminToken");
     setToken(null);
   };
 
@@ -89,9 +156,9 @@ export default function AdminPortal({
     const cleanName = newAccordName.trim();
     setColors({
       ...colors,
-      [cleanName]: newAccordColor
+      [cleanName]: newAccordColor,
     });
-    setNewAccordName('');
+    setNewAccordName("");
   };
 
   const handleDeleteAccordColor = (name: string) => {
@@ -103,12 +170,12 @@ export default function AdminPortal({
   // Brand Logo update
   const handleSaveLogo = () => {
     setLogo(newLogoUrl.trim() || null);
-    alert('Atelier brand insignia updated successfully!');
+    alert("Atelier brand insignia updated successfully!");
   };
 
   // Perfume CRUD Operations
   const handleDeletePerfume = (id: string) => {
-    if (window.confirm('Delete this perfume from the active collection?')) {
+    if (window.confirm("Delete this perfume from the active collection?")) {
       setPerfumes(perfumes.filter((p) => p.id !== id));
     }
   };
@@ -128,20 +195,24 @@ export default function AdminPortal({
     if (!editingPerfume) return;
 
     if (!editingPerfume.name || !editingPerfume.brand) {
-      alert('Must populate fragrance name and brand house.');
+      alert("Must populate fragrance name and brand house.");
       return;
     }
 
     if (editingPerfume.id) {
       // Edit
-      setPerfumes(perfumes.map((p) => (p.id === editingPerfume.id ? (editingPerfume as Perfume) : p)));
+      setPerfumes(
+        perfumes.map((p) =>
+          p.id === editingPerfume.id ? (editingPerfume as Perfume) : p,
+        ),
+      );
     } else {
       // Add
       const newId = String(Date.now());
       const completePerfume: Perfume = {
         ...(editingPerfume as Perfume),
         id: newId,
-        galleryImages: [editingPerfume.mainImage || '']
+        galleryImages: [editingPerfume.mainImage || ""],
       };
       setPerfumes([completePerfume, ...perfumes]);
     }
@@ -225,7 +296,6 @@ export default function AdminPortal({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 transition-colors duration-300 bg-white dark:bg-black">
-      
       {/* ATELIER MASTER NAVIGATION */}
       <div className="p-6 border-b flex items-center justify-between flex-shrink-0 transition-colors duration-300 bg-white border-[#ecebe7] dark:bg-black dark:border-[#c19253]/20">
         <div className="flex items-center gap-3">
@@ -262,7 +332,6 @@ export default function AdminPortal({
       {/* DASHBOARD GRID CONTENT */}
       <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-10 custom-scrollbar">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          
           {/* SEC 1: Accord palette Formulation */}
           <div className="xl:col-span-1 border-r-0 xl:border-r border-[#ecebe7] dark:border-[#c19253]/15 xl:pr-8 space-y-6">
             <div className="flex items-center gap-3">
@@ -306,7 +375,7 @@ export default function AdminPortal({
                     />
                   </div>
                 </div>
-                
+
                 <button
                   onClick={handleSaveAccordColor}
                   className="px-5 bg-black hover:bg-neutral-800 text-white dark:bg-[#c19253] dark:text-black dark:hover:bg-white rounded-xl text-xs font-extrabold uppercase tracking-widest flex items-center justify-center mt-auto h-9 shadow-sm"
@@ -327,8 +396,13 @@ export default function AdminPortal({
                     className="flex items-center justify-between bg-white dark:bg-black p-3 rounded-xl border border-[#ecebe7] dark:border-[#c19253]/20 shadow-sm hover:border-black/10 dark:hover:border-[#c19253]/40 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-md shadow-inner" style={{ backgroundColor: hex }} />
-                      <span className="text-xs font-extrabold text-[#111111] dark:text-white uppercase tracking-wider">{name}</span>
+                      <div
+                        className="w-6 h-6 rounded-md shadow-inner"
+                        style={{ backgroundColor: hex }}
+                      />
+                      <span className="text-xs font-extrabold text-[#111111] dark:text-white uppercase tracking-wider">
+                        {name}
+                      </span>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-[10px] font-mono tracking-wider uppercase font-bold text-gray-400 pl-1">
@@ -375,7 +449,7 @@ export default function AdminPortal({
                 <button
                   onClick={() => {
                     setLogo(null);
-                    setNewLogoUrl('');
+                    setNewLogoUrl("");
                   }}
                   className="text-[9px] uppercase tracking-widest font-extrabold text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 >
@@ -396,7 +470,11 @@ export default function AdminPortal({
                 Active Insignia Print
               </span>
               {logo ? (
-                <img src={logo} alt="YEAB Insignia" className="w-16 h-16 object-contain" />
+                <img
+                  src={logo}
+                  alt="YEAB Insignia"
+                  className="w-16 h-16 object-contain"
+                />
               ) : (
                 <div className="w-14 h-14 rounded-full border-2 border-dashed border-[#ecebe7] dark:border-[#c19253]/30 flex items-center justify-center text-gray-350 dark:text-gray-500 font-extrabold hover:text-gray-450 transition-colors">
                   Crown
@@ -431,7 +509,11 @@ export default function AdminPortal({
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="w-12 h-12 rounded-xl border border-black/5 dark:border-[#c19253]/20 bg-white dark:bg-black p-1 flex items-center justify-center">
-                      <img src={p.mainImage} alt={p.name} className="max-w-full max-h-full object-contain" />
+                      <img
+                        src={p.mainImage}
+                        alt={p.name}
+                        className="max-w-full max-h-full object-contain"
+                      />
                     </div>
                     <div className="min-w-0">
                       <span className="text-[8px] font-mono font-bold text-[#c19253] block uppercase tracking-widest">
@@ -466,7 +548,6 @@ export default function AdminPortal({
               ))}
             </div>
           </div>
-
         </div>
       </div>
 
@@ -481,18 +562,20 @@ export default function AdminPortal({
               className="absolute inset-0 bg-black backdrop-blur-xs"
               onClick={() => setIsFormOpen(false)}
             />
-            
+
             <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: '0%' }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              initial={{ x: "100%" }}
+              animate={{ x: "0%" }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
               className="relative w-full max-w-2xl h-full bg-white dark:bg-black shadow-2xl flex flex-col z-10 overflow-hidden border-l border-[#ecebe7] dark:border-[#c19253]/30"
             >
               <div className="p-6 border-b border-[#ecebe7] dark:border-[#c19253]/20 flex justify-between items-center bg-[#FAF9F5] dark:bg-black">
                 <div>
                   <h3 className="font-serif text-2xl font-bold text-gray-900 dark:text-[#c19253] leading-none mb-1">
-                    {editingPerfume.id ? 'Edit Formulation' : 'Create Formulation'}
+                    {editingPerfume.id
+                      ? "Edit Formulation"
+                      : "Create Formulation"}
                   </h3>
                   <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block">
                     Define essence structural parameters
@@ -506,36 +589,47 @@ export default function AdminPortal({
                 </button>
               </div>
 
-              <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar text-[#111111] dark:text-[#c19253]">
-                
+              <form
+                onSubmit={handleFormSubmit}
+                className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 custom-scrollbar text-[#111111] dark:text-[#c19253]"
+              >
                 {/* Category Selection */}
                 <div>
                   <label className="block text-[9px] uppercase tracking-wider font-extrabold text-gray-400 dark:text-gray-400 mb-2">
                     Collection Category
                   </label>
                   <div className="grid grid-cols-3 gap-2 bg-[#FAF9F5] dark:bg-black p-1.5 rounded-xl border border-[#ecebe7] dark:border-[#c19253]/25">
-                    {['Perfume', 'Brand Perfume', 'Luxury Perfume'].map((cat) => {
-                      const isActive = editingPerfume.category === cat;
-                      return (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => setEditingPerfume({
-                            ...editingPerfume,
-                            category: cat as Category,
-                            brand: cat === 'Brand Perfume' ? '' : 'Yeab Luxury'
-                          })}
-                          className={cn(
-                            "py-2.5 px-3 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
-                            isActive 
-                              ? "bg-black text-white dark:bg-[#c19253] dark:text-black shadow-md font-black" 
-                              : "text-gray-400 hover:text-black dark:hover:text-[#c19253]"
-                          )}
-                        >
-                          {cat === 'Perfume' ? 'Signature' : cat === 'Brand Perfume' ? 'Designer' : 'Private Blend'}
-                        </button>
-                      );
-                    })}
+                    {["Perfume", "Brand Perfume", "Luxury Perfume"].map(
+                      (cat) => {
+                        const isActive = editingPerfume.category === cat;
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() =>
+                              setEditingPerfume({
+                                ...editingPerfume,
+                                category: cat as Category,
+                                brand:
+                                  cat === "Brand Perfume" ? "" : "Yeab Luxury",
+                              })
+                            }
+                            className={cn(
+                              "py-2.5 px-3 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
+                              isActive
+                                ? "bg-black text-white dark:bg-[#c19253] dark:text-black shadow-md font-black"
+                                : "text-gray-400 hover:text-black dark:hover:text-[#c19253]",
+                            )}
+                          >
+                            {cat === "Perfume"
+                              ? "Signature"
+                              : cat === "Brand Perfume"
+                                ? "Designer"
+                                : "Private Blend"}
+                          </button>
+                        );
+                      },
+                    )}
                   </div>
                 </div>
 
@@ -549,7 +643,12 @@ export default function AdminPortal({
                       type="text"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white placeholder:text-gray-300"
                       value={editingPerfume.name}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, name: e.target.value })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          name: e.target.value,
+                        })
+                      }
                       placeholder="e.g. Amber Oud Absolute"
                       required
                     />
@@ -563,9 +662,14 @@ export default function AdminPortal({
                       type="text"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white placeholder:text-gray-400 disabled:opacity-50"
                       value={editingPerfume.brand}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, brand: e.target.value })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          brand: e.target.value,
+                        })
+                      }
                       placeholder="e.g. Tom Ford"
-                      disabled={editingPerfume.category !== 'Brand Perfume'}
+                      disabled={editingPerfume.category !== "Brand Perfume"}
                       required
                     />
                   </div>
@@ -581,7 +685,12 @@ export default function AdminPortal({
                       type="number"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white"
                       value={editingPerfume.price}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, price: Number(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          price: Number(e.target.value) || 0,
+                        })
+                      }
                       required
                     />
                   </div>
@@ -594,7 +703,12 @@ export default function AdminPortal({
                       type="text"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wider outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white"
                       value={editingPerfume.code}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, code: e.target.value })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          code: e.target.value,
+                        })
+                      }
                       placeholder="P-MA40"
                       required
                     />
@@ -611,23 +725,72 @@ export default function AdminPortal({
                       step="0.1"
                       className="w-full h-8 accent-black dark:accent-[#c19253] mt-1 cursor-pointer"
                       value={editingPerfume.rating}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, rating: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          rating: Number(e.target.value),
+                        })
+                      }
                     />
                   </div>
                 </div>
 
-                {/* Images URL sources */}
+                {/* Image Upload — pick file → immediately upload → store URL */}
                 <div className="space-y-1.5">
                   <label className="block text-[9px] uppercase tracking-wider font-extrabold text-gray-400">
-                    Fragrance Flask Image Link (URL)
+                    Fragrance Flask Image
                   </label>
-                  <input
-                    type="url"
-                    className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-gray-650 dark:text-white"
-                    value={editingPerfume.mainImage}
-                    onChange={(e) => setEditingPerfume({ ...editingPerfume, mainImage: e.target.value })}
-                    required
-                  />
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1 flex items-center gap-2 bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer hover:border-black/30 dark:hover:border-[#c19253]/60 transition-colors">
+                      <Upload size={14} className="text-gray-400" />
+                      <span className="text-gray-400">
+                        {editingPerfume.mainImage?.startsWith("/uploads")
+                          ? "Image uploaded ✓"
+                          : "Choose image file..."}
+                      </span>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={isUploading}
+                        onChange={handleFileSelect}
+                      />
+                    </label>
+                    {isUploading && (
+                      <div className="flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-[#c19253]">
+                        <Loader2 size={14} className="animate-spin" />
+                        Uploading...
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Preview */}
+                  {editingPerfume.mainImage && (
+                    <div className="mt-2 flex items-center gap-3 bg-[#FAF9F5] dark:bg-black p-2 rounded-xl border border-[#ecebe7] dark:border-[#c19253]/20">
+                      <img
+                        src={editingPerfume.mainImage}
+                        alt="Preview"
+                        className="w-12 h-12 rounded-lg object-cover border border-black/5 dark:border-[#c19253]/20"
+                      />
+                      <span className="text-[10px] font-mono font-bold text-gray-500 dark:text-gray-400 truncate flex-1">
+                        {editingPerfume.mainImage}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            mainImage: "",
+                          })
+                        }
+                        className="text-gray-300 hover:text-red-500 transition-colors"
+                        title="Remove image"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Gender selection */}
@@ -639,7 +802,12 @@ export default function AdminPortal({
                     <select
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-gray-950 dark:text-[#c19253]"
                       value={editingPerfume.gender}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, gender: e.target.value as Gender })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          gender: e.target.value as Gender,
+                        })
+                      }
                     >
                       <option value="Male">Masculine</option>
                       <option value="Female">Feminine</option>
@@ -655,7 +823,12 @@ export default function AdminPortal({
                     <select
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2.5 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-gray-950 dark:text-[#c19253]"
                       value={editingPerfume.dayNight}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, dayNight: e.target.value as DayNight })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          dayNight: e.target.value as DayNight,
+                        })
+                      }
                     >
                       <option value="Day">Day Only</option>
                       <option value="Night">Night Only</option>
@@ -670,24 +843,30 @@ export default function AdminPortal({
                     Optimal Seasons (multi-select)
                   </label>
                   <div className="flex gap-2">
-                    {['Winter', 'Spring', 'Summer', 'Autumn'].map((s) => {
+                    {["Winter", "Spring", "Summer", "Autumn"].map((s) => {
                       const season = s as Season;
-                      const isChecked = editingPerfume.seasons?.includes(season);
+                      const isChecked =
+                        editingPerfume.seasons?.includes(season);
                       return (
                         <button
                           key={s}
                           type="button"
                           onClick={() => {
                             const next = isChecked
-                              ? (editingPerfume.seasons || []).filter((x) => x !== season)
+                              ? (editingPerfume.seasons || []).filter(
+                                  (x) => x !== season,
+                                )
                               : [...(editingPerfume.seasons || []), season];
-                            setEditingPerfume({ ...editingPerfume, seasons: next });
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              seasons: next,
+                            });
                           }}
                           className={cn(
                             "flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all",
                             isChecked
                               ? "bg-black text-white border-black dark:bg-[#c19253] dark:text-black dark:border-transparent"
-                              : "bg-[#FAF9F5] text-gray-400 border-[#ecebe7] dark:bg-black dark:border-[#c19253]/20 dark:text-gray-500"
+                              : "bg-[#FAF9F5] text-gray-400 border-[#ecebe7] dark:bg-black dark:border-[#c19253]/20 dark:text-gray-500",
                           )}
                         >
                           {s}
@@ -706,7 +885,12 @@ export default function AdminPortal({
                     rows={3}
                     className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-3 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-gray-650 dark:text-white resize-none leading-relaxed"
                     value={editingPerfume.description}
-                    onChange={(e) => setEditingPerfume({ ...editingPerfume, description: e.target.value })}
+                    onChange={(e) =>
+                      setEditingPerfume({
+                        ...editingPerfume,
+                        description: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
@@ -720,10 +904,15 @@ export default function AdminPortal({
                       type="text"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white"
                       value={editingPerfume.fragranceProfile?.longevity}
-                      onChange={(e) => setEditingPerfume({
-                        ...editingPerfume,
-                        fragranceProfile: { ...editingPerfume.fragranceProfile!, longevity: e.target.value }
-                      })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          fragranceProfile: {
+                            ...editingPerfume.fragranceProfile!,
+                            longevity: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </div>
 
@@ -735,10 +924,15 @@ export default function AdminPortal({
                       type="text"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white"
                       value={editingPerfume.fragranceProfile?.projection}
-                      onChange={(e) => setEditingPerfume({
-                        ...editingPerfume,
-                        fragranceProfile: { ...editingPerfume.fragranceProfile!, projection: e.target.value }
-                      })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          fragranceProfile: {
+                            ...editingPerfume.fragranceProfile!,
+                            projection: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </div>
 
@@ -750,10 +944,15 @@ export default function AdminPortal({
                       type="text"
                       className="w-full bg-[#FAF9F5] dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/30 px-4 py-2 rounded-xl text-xs font-bold outline-none focus:border-black dark:focus:border-[#c19253] text-[#111111] dark:text-white"
                       value={editingPerfume.fragranceProfile?.sillage}
-                      onChange={(e) => setEditingPerfume({
-                        ...editingPerfume,
-                        fragranceProfile: { ...editingPerfume.fragranceProfile!, sillage: e.target.value }
-                      })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          fragranceProfile: {
+                            ...editingPerfume.fragranceProfile!,
+                            sillage: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -765,15 +964,26 @@ export default function AdminPortal({
                     <button
                       type="button"
                       onClick={() => {
-                        const name = window.prompt('Accord structural category:');
+                        const name = window.prompt(
+                          "Accord structural category:",
+                        );
                         if (!name) return;
-                        const valueStr = window.prompt('Accord percentage scale (0-100):');
+                        const valueStr = window.prompt(
+                          "Accord percentage scale (0-100):",
+                        );
                         if (!valueStr) return;
                         const parsedVal = Number(valueStr) || 50;
                         const nextAcc = [...(editingPerfume.accords || [])];
                         // check color maps
-                        nextAcc.push({ name, value: parsedVal, color: colors[name] || '#666' });
-                        setEditingPerfume({ ...editingPerfume, accords: nextAcc });
+                        nextAcc.push({
+                          name,
+                          value: parsedVal,
+                          color: colors[name] || "#666",
+                        });
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          accords: nextAcc,
+                        });
                       }}
                       className="text-[#c19253] hover:underline cursor-pointer"
                     >
@@ -783,15 +993,30 @@ export default function AdminPortal({
 
                   <div className="space-y-2">
                     {editingPerfume.accords?.map((acc, index) => (
-                      <div key={index} className="flex items-center gap-3 bg-[#FAF9F5] dark:bg-black p-2.5 rounded-lg border border-[#ecebe7] dark:border-[#c19253]/20 text-xs text-gray-800 dark:text-gray-200">
-                        <div className="w-5 h-5 rounded-md shadow-inner" style={{ backgroundColor: colors[acc.name] || acc.color }} />
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 bg-[#FAF9F5] dark:bg-black p-2.5 rounded-lg border border-[#ecebe7] dark:border-[#c19253]/20 text-xs text-gray-800 dark:text-gray-200"
+                      >
+                        <div
+                          className="w-5 h-5 rounded-md shadow-inner"
+                          style={{
+                            backgroundColor: colors[acc.name] || acc.color,
+                          }}
+                        />
                         <span className="flex-1 font-bold">{acc.name}</span>
-                        <span className="font-mono text-gray-400">{acc.value}%</span>
+                        <span className="font-mono text-gray-400">
+                          {acc.value}%
+                        </span>
                         <button
                           type="button"
                           onClick={() => {
-                            const nextAcc = (editingPerfume.accords || []).filter((_, i) => i !== index);
-                            setEditingPerfume({ ...editingPerfume, accords: nextAcc });
+                            const nextAcc = (
+                              editingPerfume.accords || []
+                            ).filter((_, i) => i !== index);
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              accords: nextAcc,
+                            });
                           }}
                           className="text-gray-300 hover:text-red-500 transition-colors cursor-pointer"
                         >
@@ -804,23 +1029,38 @@ export default function AdminPortal({
 
                 {/* Sub-block Top middle base notes */}
                 <div className="space-y-3.5 border border-[#ecebe7] dark:border-[#c19253]/25 p-4 rounded-2xl">
-                  <h4 className="text-[10px] uppercase font-extrabold text-gray-400">Notes formulation list</h4>
-                  
-                  {(['top', 'middle', 'base'] as const).map((noteTier) => (
+                  <h4 className="text-[10px] uppercase font-extrabold text-gray-400">
+                    Notes formulation list
+                  </h4>
+
+                  {(["top", "middle", "base"] as const).map((noteTier) => (
                     <div key={noteTier} className="space-y-2">
                       <div className="flex justify-between items-center text-[9px] font-extrabold uppercase">
-                        <span className="text-gray-500 capitalize">{noteTier} Elements</span>
+                        <span className="text-gray-500 capitalize">
+                          {noteTier} Elements
+                        </span>
                         <button
                           type="button"
                           onClick={() => {
-                            const name = window.prompt('Substance element name:');
+                            const name = window.prompt(
+                              "Substance element name:",
+                            );
                             if (!name) return;
-                            const imageLink = window.prompt('Raw material representation URL link:', 'https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100');
+                            const imageLink = window.prompt(
+                              "Raw material representation URL link:",
+                              "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100",
+                            );
                             if (!imageLink) return;
 
                             const notesCopy = { ...editingPerfume.notes! };
-                            notesCopy[noteTier] = [...(notesCopy[noteTier] || []), { name, iconUrl: imageLink }];
-                            setEditingPerfume({ ...editingPerfume, notes: notesCopy });
+                            notesCopy[noteTier] = [
+                              ...(notesCopy[noteTier] || []),
+                              { name, iconUrl: imageLink },
+                            ];
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              notes: notesCopy,
+                            });
                           }}
                           className="text-[#c19253] hover:underline cursor-pointer"
                         >
@@ -830,15 +1070,27 @@ export default function AdminPortal({
 
                       <div className="flex flex-wrap gap-2">
                         {editingPerfume.notes?.[noteTier]?.map((node, i) => (
-                          <div key={i} className="flex items-center gap-1.5 bg-white dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/25 px-2.5 py-1 rounded-full text-[10px] font-bold text-gray-800 dark:text-gray-200">
-                            <img src={node.iconUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                          <div
+                            key={i}
+                            className="flex items-center gap-1.5 bg-white dark:bg-black border border-[#ecebe7] dark:border-[#c19253]/25 px-2.5 py-1 rounded-full text-[10px] font-bold text-gray-800 dark:text-gray-200"
+                          >
+                            <img
+                              src={node.iconUrl}
+                              alt=""
+                              className="w-4 h-4 rounded-full object-cover"
+                            />
                             <span>{node.name}</span>
                             <button
                               type="button"
                               onClick={() => {
                                 const notesCopy = { ...editingPerfume.notes! };
-                                notesCopy[noteTier] = notesCopy[noteTier].filter((_, index) => index !== i);
-                                setEditingPerfume({ ...editingPerfume, notes: notesCopy });
+                                notesCopy[noteTier] = notesCopy[
+                                  noteTier
+                                ].filter((_, index) => index !== i);
+                                setEditingPerfume({
+                                  ...editingPerfume,
+                                  notes: notesCopy,
+                                });
                               }}
                               className="text-gray-350 hover:text-red-500 cursor-pointer pl-0.5"
                             >
@@ -850,7 +1102,6 @@ export default function AdminPortal({
                     </div>
                   ))}
                 </div>
-
               </form>
 
               {/* SAVING PANEL */}
@@ -870,7 +1121,6 @@ export default function AdminPortal({
                   Cancel
                 </button>
               </div>
-
             </motion.div>
           </div>
         )}

@@ -1,34 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { userService } from "../../lib/api";
+import React, { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { authService, tokenStore } from "../../lib/api";
 import { Lock, Loader2, ShieldAlert } from "lucide-react";
-import { safeStorage } from "../../lib/storage";
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("dave");
+  const [password, setPassword] = useState("admin123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Check if already authenticated and redirect
-  useEffect(() => {
-    const token = safeStorage.getItem("adminToken");
-    const userStr = safeStorage.getItem("adminUser");
-    if (token && userStr) {
-      try {
-        JSON.parse(userStr);
-        navigate("/admin/dashboard");
-      } catch (e) {
-        safeStorage.removeItem("adminToken");
-        safeStorage.removeItem("adminUser");
-      }
-    } else if (token || userStr) {
-      // Out of sync, clean both to prevent loops
-      safeStorage.removeItem("adminToken");
-      safeStorage.removeItem("adminUser");
-    }
-  }, [navigate]);
+  const token = tokenStore.get();
+
+  if (token) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,16 +27,14 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const response = await userService.login(username, password);
-      safeStorage.setItem("adminToken", response.token);
-      safeStorage.setItem("adminUser", JSON.stringify(response.user));
-      
-      // Dispatch custom login event for instantaneous route updates
-      window.dispatchEvent(new Event("admin-login-success"));
+      const response = await authService.login(username, password);
       navigate("/admin/dashboard");
     } catch (err: any) {
       console.error("Login failure:", err);
-      const errMsg = err.response?.data?.message || err.message || "Incorrect formulation master credentials.";
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Incorrect formulation master credentials.";
       setError(errMsg);
     } finally {
       setLoading(false);
@@ -78,7 +62,11 @@ export default function AdminLogin() {
             <div className="flex-1 font-mono tracking-tight leading-relaxed">
               {error}
               <div className="text-[10px] text-red-500/70 mt-1">
-                Tip: Default demo usernames are: <span className="underline select-all font-bold">admin</span> or <span className="underline select-all font-bold">staff</span>. Access credentials are: <span className="font-bold">admin</span>.
+                Tip: Default demo usernames are:{" "}
+                <span className="underline select-all font-bold">admin</span> or{" "}
+                <span className="underline select-all font-bold">staff</span>.
+                Access credentials are: <span className="font-bold">admin</span>
+                .
               </div>
             </div>
           </div>

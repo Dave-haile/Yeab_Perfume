@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Perfume } from "../../types";
 import { Star, Eye, Compass, Award, Sparkles, AlertCircle } from "lucide-react";
-import { cn } from "../../lib/utils";
+import { cn, imageUrl } from "../../lib/utils";
 
 // Helper function to chunk array into smaller arrays
 const chunkArray = <T,>(array: T[], size: number): T[][] => {
@@ -400,7 +400,7 @@ export default function HorizontalSyncGallery({
                     >
                       <div className="w-full md:w-1/2 aspect-4/5 md:aspect-auto md:h-full relative overflow-hidden bg-gray-50 flex items-center justify-center dark:bg-black">
                         <img
-                          src={perfume.mainImage}
+                          src={imageUrl(perfume.mainImage)}
                           alt={perfume.name}
                           className="w-full h-full object-cover transition-transform duration-700 ease-out pointer-events-none"
                           referrerPolicy="no-referrer"

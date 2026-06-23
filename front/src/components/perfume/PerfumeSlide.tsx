@@ -1,8 +1,16 @@
-import React from 'react';
-import { Perfume } from '../../types';
-import { motion } from 'motion/react';
-import { Star, Eye, Sparkles, Sun, Moon, Hourglass, ArrowRight } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { Perfume } from "../../types";
+import { motion } from "motion/react";
+import {
+  Star,
+  Eye,
+  Sparkles,
+  Sun,
+  Moon,
+  Hourglass,
+  ArrowRight,
+} from "lucide-react";
+import { cn, imageUrl } from "../../lib/utils";
 
 interface PerfumeSlideProps {
   perfume: Perfume;
@@ -14,17 +22,24 @@ interface PerfumeSlideProps {
   hideNav?: boolean;
 }
 
-export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspect, isDarkMode = false, hideNav = false }: PerfumeSlideProps) {
+export default function PerfumeSlide({
+  perfume,
+  onNext,
+  onPrev,
+  colors,
+  onInspect,
+  isDarkMode = false,
+  hideNav = false,
+}: PerfumeSlideProps) {
   // Collect a sample list of notes to showcase as tiny icons
   const listNotes = [
     ...perfume.notes.top,
     ...perfume.notes.middle,
-    ...perfume.notes.base
+    ...perfume.notes.base,
   ].slice(0, 5);
 
   return (
     <div className="w-full flex-1 flex flex-col lg:flex-row rounded-3xl overflow-hidden border shadow-lg select-none transition-colors duration-300 bg-[#FAF9F5] border-[#ecebe7] text-[#111111] dark:bg-black dark:border-[#c19253]/25 dark:text-[#c19253]">
-      
       {/* LEFT COLUMN: Visual Showcase & Ingredients (Top, Heart, Base snippets) */}
       <div className="w-full lg:w-[42%] p-6 sm:p-8 flex flex-col justify-between lg:border-b-0 lg:border-r relative border-b transition-colors duration-300 bg-[#f6f5f0] border-[#ecebe7] dark:bg-black dark:border-[#c19253]/20">
         <div className="flex items-center justify-between">
@@ -45,12 +60,12 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
               layoutId={`image-shadow-${perfume.id}`}
               className="absolute w-[95%] h-[95%] blur-2xl rounded-full z-0 translate-y-3 bg-black/15 dark:bg-black/80"
             />
-            
+
             <motion.img
               initial={{ y: 15, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              src={perfume.mainImage}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              src={imageUrl(perfume.mainImage)}
               alt={perfume.name}
               className="w-full h-full object-cover rounded-2xl relative z-10 drop-shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
               referrerPolicy="no-referrer"
@@ -67,7 +82,9 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
                   <Star
                     key={i}
                     size={12}
-                    fill={i < Math.floor(perfume.rating) ? "#c19253" : "transparent"}
+                    fill={
+                      i < Math.floor(perfume.rating) ? "#c19253" : "transparent"
+                    }
                     className="text-[#c19253]"
                   />
                 ))}
@@ -86,14 +103,18 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
           </span>
           <div className="flex flex-wrap gap-3 sm:gap-4 items-center justify-start">
             {listNotes.map((note, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-1 w-12 flex-shrink-0">
+              <div
+                key={idx}
+                className="flex flex-col items-center gap-1 w-12 flex-shrink-0"
+              >
                 <div className="w-8 h-8 rounded-full overflow-hidden border p-0.5 shadow-sm transition-colors bg-white border-[#ecebe7] dark:bg-black dark:border-[#c19253]/30">
                   <img
                     src={note.iconUrl}
                     alt={note.name}
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100';
+                      (e.target as HTMLImageElement).src =
+                        "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100";
                     }}
                   />
                 </div>
@@ -109,7 +130,6 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
       {/* RIGHT COLUMN: Accords list, wear periods, action triggers */}
       <div className="w-full lg:w-[58%] p-6 sm:p-8 flex flex-col justify-between relative transition-colors duration-300 bg-white dark:bg-black animate-fade-in">
         <div className="space-y-6">
-          
           {/* Header Title Information */}
           <div>
             <span className="text-[10px] uppercase font-bold tracking-[0.25em] text-[#c19253] block mb-1">
@@ -129,7 +149,8 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
             </h4>
             <div className="space-y-3">
               {perfume.accords.slice(0, 4).map((accord, idx) => {
-                const backgroundBar = colors[accord.name] || accord.color || '#ecebe7';
+                const backgroundBar =
+                  colors[accord.name] || accord.color || "#ecebe7";
                 return (
                   <div key={idx} className="space-y-1.5 animate-fade-in">
                     <div className="flex justify-between items-center text-[10px] sm:text-xs">
@@ -145,7 +166,11 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${accord.value}%` }}
-                        transition={{ duration: 1.2, ease: 'easeOut', delay: idx * 0.05 }}
+                        transition={{
+                          duration: 1.2,
+                          ease: "easeOut",
+                          delay: idx * 0.05,
+                        }}
                         className="h-full rounded-full"
                         style={{ backgroundColor: backgroundBar }}
                       />
@@ -158,25 +183,38 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
 
           {/* Quick Stats Grid: wear period split + longevity review */}
           <div className="grid grid-cols-2 gap-4">
-            
             {/* Wear time display slider bar */}
             <div className="p-3 rounded-xl border transition-colors duration-300 bg-[#FAF9F5] border-[#ecebe7] dark:bg-black dark:border-[#c19253]/20">
               <span className="text-[9px] tracking-wider uppercase font-bold text-[#c19253] block mb-1.5">
                 Wear Period
               </span>
               <div className="flex gap-2 items-center">
-                <Sun size={14} className={perfume.dayNight !== 'Night' ? "text-[#c19253]" : "text-gray-300"} />
+                <Sun
+                  size={14}
+                  className={
+                    perfume.dayNight !== "Night"
+                      ? "text-[#c19253]"
+                      : "text-gray-300"
+                  }
+                />
                 <div className="h-1 flex-1 rounded-full relative transition-colors bg-gray-200 dark:bg-gray-800">
                   <div
                     className={cn(
                       "h-full rounded-full transition-colors",
-                      perfume.dayNight === 'Both' ? 'w-full' : 'w-1/2',
-                      perfume.dayNight === 'Night' ? 'ml-auto' : '',
-                      "bg-[#111111] dark:bg-[#c19253]"
+                      perfume.dayNight === "Both" ? "w-full" : "w-1/2",
+                      perfume.dayNight === "Night" ? "ml-auto" : "",
+                      "bg-[#111111] dark:bg-[#c19253]",
                     )}
                   />
                 </div>
-                <Moon size={14} className={perfume.dayNight !== 'Day' ? "text-[#111111] dark:text-gray-200" : "text-gray-300"} />
+                <Moon
+                  size={14}
+                  className={
+                    perfume.dayNight !== "Day"
+                      ? "text-[#111111] dark:text-gray-200"
+                      : "text-gray-300"
+                  }
+                />
               </div>
             </div>
 
@@ -194,7 +232,6 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
                 </span>
               </div>
             </div>
-
           </div>
 
           {/* Seasons chips lines */}
@@ -203,7 +240,7 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
               Optimal Seasons
             </h4>
             <div className="flex gap-2">
-              {['Winter', 'Spring', 'Summer', 'Autumn'].map((s) => {
+              {["Winter", "Spring", "Summer", "Autumn"].map((s) => {
                 const isActive = perfume.seasons.includes(s as any);
                 return (
                   <span
@@ -212,7 +249,7 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
                       "flex-1 py-1 rounded-md text-[9px] text-center uppercase tracking-widest font-bold border transition-all duration-300",
                       isActive
                         ? "bg-[#111111] text-white border-black dark:bg-[#c19253] dark:text-black dark:border-transparent dark:font-black"
-                        : "bg-[#fcfcfa] text-gray-300 border-[#f0eee8] dark:bg-black dark:text-gray-600 dark:border-[#c19253]/20"
+                        : "bg-[#fcfcfa] text-gray-300 border-[#f0eee8] dark:bg-black dark:text-gray-600 dark:border-[#c19253]/20",
                     )}
                   >
                     {s}
@@ -221,7 +258,6 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
               })}
             </div>
           </div>
-
         </div>
 
         {/* Footer actions block: Price tag and pagination triggers */}
@@ -251,7 +287,9 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
                   className="w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg hover:-translate-x-0.5 transition-all outline-none bg-[#111111] hover:bg-black text-white hover:text-[#c19253] dark:bg-[#c19253] dark:text-black dark:hover:bg-white"
                   title="Previous scent"
                 >
-                  <div className="rotate-180 flex"><ArrowRight size={16} /></div>
+                  <div className="rotate-180 flex">
+                    <ArrowRight size={16} />
+                  </div>
                 </button>
                 <button
                   onClick={onNext}
@@ -264,9 +302,7 @@ export default function PerfumeSlide({ perfume, onNext, onPrev, colors, onInspec
             )}
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }

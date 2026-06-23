@@ -1,8 +1,8 @@
-import React from 'react';
-import { Perfume } from '../../types';
-import { motion } from 'motion/react';
-import { Star } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { Perfume } from "../../types";
+import { motion } from "motion/react";
+import { Star } from "lucide-react";
+import { cn, imageUrl } from "../../lib/utils";
 
 interface PerfumeCardProps {
   perfume: Perfume;
@@ -11,7 +11,12 @@ interface PerfumeCardProps {
   isDarkMode?: boolean;
 }
 
-export const PerfumeCard: React.FC<PerfumeCardProps> = ({ perfume, onClick, colors, isDarkMode = false }) => {
+export const PerfumeCard: React.FC<PerfumeCardProps> = ({
+  perfume,
+  onClick,
+  colors,
+  isDarkMode = false,
+}) => {
   return (
     <motion.div
       layoutId={`card-${perfume.id}`}
@@ -19,7 +24,7 @@ export const PerfumeCard: React.FC<PerfumeCardProps> = ({ perfume, onClick, colo
       className={cn(
         "group relative cursor-pointer flex flex-col rounded-2xl p-4 border transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1.5",
         "bg-white hover:bg-[#fafafa] text-[#111111] border-[#ecebe7] hover:border-black/30",
-        "dark:bg-black dark:hover:bg-[#c19253]/5 dark:text-[#c19253] dark:border-[#c19253]/20 dark:hover:border-[#c19253]/45 dark:hover:shadow-[#c19253]/5"
+        "dark:bg-black dark:hover:bg-[#c19253]/5 dark:text-[#c19253] dark:border-[#c19253]/20 dark:hover:border-[#c19253]/45 dark:hover:shadow-[#c19253]/5",
       )}
       whileTap={{ scale: 0.98 }}
     >
@@ -32,7 +37,7 @@ export const PerfumeCard: React.FC<PerfumeCardProps> = ({ perfume, onClick, colo
       <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden mb-4.5 flex items-center justify-center border bg-[#fbfbfa] border-black/5 dark:bg-black dark:border-[#c19253]/20">
         <motion.img
           layoutId={`image-${perfume.id}`}
-          src={perfume.mainImage}
+          src={imageUrl(perfume.mainImage)}
           alt={perfume.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
           referrerPolicy="no-referrer"
@@ -42,7 +47,7 @@ export const PerfumeCard: React.FC<PerfumeCardProps> = ({ perfume, onClick, colo
         {/* Accords dynamic bar layout on absolute overlay bottom */}
         <div className="absolute bottom-3 left-3 right-3 flex gap-1 justify-center z-10 opacity-0 group-hover:opacity-100 translate-y-1.5 group-hover:translate-y-0 transition-all duration-500">
           {perfume.accords.slice(0, 3).map((accord, idx) => {
-            const barBg = colors[accord.name] || accord.color || '#ecebe7';
+            const barBg = colors[accord.name] || accord.color || "#ecebe7";
             return (
               <div
                 key={idx}

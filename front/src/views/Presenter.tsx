@@ -1,40 +1,26 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Info } from 'lucide-react';
-import { Category, Gender, Perfume } from '../types';
-import PerfumeSlide from '../components/perfume/PerfumeSlide';
+import React from "react";
+import { motion } from "motion/react";
+import { Info } from "lucide-react";
+import { useApp } from "../common/AppContext";
+import PerfumeSlide from "../components/perfume/PerfumeSlide";
 
-interface PresenterProps {
-  filteredPerfumes: Perfume[];
-  slideIndex: number;
-  setSlideIndex: React.Dispatch<React.SetStateAction<number>>;
-  colors: Record<string, string>;
-  isDarkMode: boolean;
-  activeGender: Gender | 'All';
-  activeCategory: Category | 'All';
-  setActiveCategory: (cat: Category | 'All') => void;
-  setActiveGender: (gender: Gender | 'All') => void;
-  setSearchQuery: (query: string) => void;
-  setInspectPerfume: (p: Perfume) => void;
-}
+export default function Presenter() {
+  const {
+    filteredPerfumes,
+    slideIndex,
+    setSlideIndex,
+    colors,
+    isDarkMode,
+    activeGender,
+    activeCategory,
+    setActiveCategory,
+    setActiveGender,
+    setSearchQuery,
+    setInspectPerfume,
+  } = useApp();
 
-export default function Presenter({
-  filteredPerfumes,
-  slideIndex,
-  setSlideIndex,
-  colors,
-  isDarkMode,
-  activeGender,
-  activeCategory,
-  setActiveCategory,
-  setActiveGender,
-  setSearchQuery,
-  setInspectPerfume
-}: PresenterProps) {
-  
-  const activeFiltersCount = 
-    (activeCategory !== 'All' ? 1 : 0) + 
-    (activeGender !== 'All' ? 1 : 0);
+  const activeFiltersCount =
+    (activeCategory !== "All" ? 1 : 0) + (activeGender !== "All" ? 1 : 0);
 
   const handleNextSlide = () => {
     if (filteredPerfumes.length === 0) return;
@@ -43,10 +29,13 @@ export default function Presenter({
 
   const handlePrevSlide = () => {
     if (filteredPerfumes.length === 0) return;
-    setSlideIndex((prev) => (prev - 1 + filteredPerfumes.length) % filteredPerfumes.length);
+    setSlideIndex(
+      (prev) => (prev - 1 + filteredPerfumes.length) % filteredPerfumes.length,
+    );
   };
 
-  const currentSlidePerfume = filteredPerfumes[slideIndex] || filteredPerfumes[0];
+  const currentSlidePerfume =
+    filteredPerfumes[slideIndex] || filteredPerfumes[0];
 
   return (
     <motion.div
@@ -62,11 +51,15 @@ export default function Presenter({
           {/* Active filter prompt snippet when slide presenter active */}
           {activeFiltersCount > 0 && (
             <div className="text-center mb-6 text-[10px] uppercase font-bold text-gray-400 tracking-widest">
-              Browsing {slideIndex + 1} of {filteredPerfumes.length} matching filters (
-              {activeGender !== 'All' ? `${activeGender} Gender` : 'All Genders'} • {activeCategory} collection)
+              Browsing {slideIndex + 1} of {filteredPerfumes.length} matching
+              filters (
+              {activeGender !== "All"
+                ? `${activeGender} Gender`
+                : "All Genders"}{" "}
+              • {activeCategory} collection)
             </div>
           )}
-          
+
           <PerfumeSlide
             perfume={currentSlidePerfume}
             colors={colors}
@@ -83,13 +76,14 @@ export default function Presenter({
             Empty slide list
           </h4>
           <p className="text-xs text-gray-400 leading-relaxed mb-6">
-            No perfumes active in the active category filters to build the slide presenter deck view.
+            No perfumes active in the active category filters to build the slide
+            presenter deck view.
           </p>
           <button
             onClick={() => {
-              setActiveCategory('All');
-              setActiveGender('All');
-              setSearchQuery('');
+              setActiveCategory("All");
+              setActiveGender("All");
+              setSearchQuery("");
             }}
             className="px-6 py-2.5 text-xs font-bold uppercase tracking-widest rounded-xl transition-all bg-black text-white dark:bg-[#c19253] dark:text-black"
           >

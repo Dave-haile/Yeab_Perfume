@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import { useAuth } from "../lib/api";
 
 interface AdminGuardProps {
@@ -31,35 +30,17 @@ interface AdminGuardProps {
  */
 export default function AdminGuard({ children, requireRole }: AdminGuardProps) {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    if (loading) return;
+  if (loading) {
+    return null;
+  }
 
-    if (!user) {
-      // Not logged in — redirect to login, remember where they were going
-      navigate("/admin/login", {
-        replace: true,
-        state: { from: location.pathname },
-      });
-      return;
-    }
-
-    if (requireRole === "admin" && user.role !== "admin") {
-      // Logged in but wrong role — send to dashboard with an error message
-      navigate("/admin", {
-        replace: true,
-        state: { error: "You need admin access to view that page." },
-      });
-    }
-  }, [user, loading, requireRole, navigate, location]);
-
-  // Don't render anything while checking — prevents a flicker of protected content
-  if (loading) return null;
-
-  // Not authed — also render nothing (the useEffect above will redirect)
-  if (!user) return null;
+  if (!user) {
+    return (
+      <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+    );
+  }
 
   // Role check failed
   if (requireRole === "admin" && user.role !== "admin") return null;

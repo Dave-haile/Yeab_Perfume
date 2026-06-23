@@ -4,11 +4,13 @@ import cors from "cors";
 import path from "path";
 import { createTables } from "./db/schema";
 import { seedDefaultAdmin } from "./models/users";
+import { ensureConfigTable } from "./models/config";
 import perfumesRouter from "./routes/perfumes";
 import uploadsRouter from "./routes/uploads";
 import staffRequestsRouter from "./routes/staffRequests";
 import authRouter from "./routes/auth";
 import adminRouter from "./routes/admin";
+import configRouter from "./routes/config";
 import { requireAuth } from "./middleware/auth";
 import { errorHandler } from "./middleware/errorHandler";
 import dotenv from "dotenv";
@@ -39,6 +41,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Create tables on startup (safe to run every time — uses IF NOT EXISTS)
 createTables();
 seedDefaultAdmin();
+ensureConfigTable();
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRouter);
@@ -46,6 +49,7 @@ app.use("/api/perfumes", perfumesRouter);
 app.use("/api/uploads", uploadsRouter);
 app.use("/api/staff-requests", staffRequestsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api", configRouter);
 
 // Health check — useful to confirm the server is running
 app.get("/api/health", (_req, res) => {

@@ -9,17 +9,16 @@ import {
   DayNight,
   Season,
   StockStatus,
-  UserRole
+  UserRole,
 } from "../../types";
 import {
   perfumeService,
   userService,
   requestService,
-  uploadService
+  uploadService,
 } from "../../lib/api";
 import { safeStorage } from "../../lib/storage";
 import {
-  LayoutDashboard,
   Sparkles,
   Inbox,
   Users,
@@ -31,40 +30,36 @@ import {
   X,
   Loader2,
   Upload,
-  CheckCircle,
-  HelpCircle,
   AlertTriangle,
-  FileCheck,
-  Eye,
-  SlidersHorizontal,
-  ChevronRight,
-  UserCheck2,
   UserX,
   Sun,
-  Moon
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { imageUrl } from "@/src/lib/utils";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  
+
   // Auth state
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  
+
   // Navigation tabs: 'perfumes' | 'requests' | 'users'
-  const [activeTab, setActiveTab] = useState<"perfumes" | "requests" | "users">("perfumes");
-  
+  const [activeTab, setActiveTab] = useState<"perfumes" | "requests" | "users">(
+    "perfumes",
+  );
+
   // Data lists
   const [perfumes, setPerfumes] = useState<Perfume[]>([]);
   const [staffUsers, setStaffUsers] = useState<User[]>([]);
   const [requests, setRequests] = useState<StaffRequest[]>([]);
-  
+
   // Loading states
   const [loadingPerfumes, setLoadingPerfumes] = useState(false);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  
+
   // Search & Filter state for perfume table
   const [searchQuery, setSearchQuery] = useState("");
   const [filterGender, setFilterGender] = useState<string>("All");
@@ -76,7 +71,9 @@ export default function AdminDashboard() {
 
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingPerfume, setEditingPerfume] = useState<Partial<Perfume> | null>(null);
+  const [editingPerfume, setEditingPerfume] = useState<Partial<Perfume> | null>(
+    null,
+  );
   const [imageUploading, setImageUploading] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
 
@@ -86,7 +83,9 @@ export default function AdminDashboard() {
   const [newUserRole, setNewUserRole] = useState<UserRole>("staff");
 
   // Notifications
-  const [toasts, setToasts] = useState<{ id: string; type: "success" | "error"; message: string }[]>([]);
+  const [toasts, setToasts] = useState<
+    { id: string; type: "success" | "error"; message: string }[]
+  >([]);
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,7 +112,10 @@ export default function AdminDashboard() {
   };
 
   // Trigger transient notice
-  const triggerToast = (message: string, type: "success" | "error" = "success") => {
+  const triggerToast = (
+    message: string,
+    type: "success" | "error" = "success",
+  ) => {
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, type, message }]);
     setTimeout(() => {
@@ -220,7 +222,11 @@ export default function AdminDashboard() {
   };
 
   const handleDeletePerfume = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${name}? This action cannot be undone.`,
+      )
+    ) {
       return;
     }
     setActionLoading(true);
@@ -257,20 +263,33 @@ export default function AdminDashboard() {
 
   const handleDeleteUser = async (targetUser: User) => {
     if (!currentUser) return;
-    
+
     // Safety checks
-    if (targetUser.id === currentUser.id || targetUser.username === currentUser.username) {
-      triggerToast("Failure: You are strictly forbidden from deleting your own active account.", "error");
+    if (
+      targetUser.id === currentUser.id ||
+      targetUser.username === currentUser.username
+    ) {
+      triggerToast(
+        "Failure: You are strictly forbidden from deleting your own active account.",
+        "error",
+      );
       return;
     }
 
     const adminsCount = staffUsers.filter((u) => u.role === "admin").length;
     if (targetUser.role === "admin" && adminsCount <= 1) {
-      triggerToast("Failure: Security override. You cannot delete the ultimate administrator account.", "error");
+      triggerToast(
+        "Failure: Security override. You cannot delete the ultimate administrator account.",
+        "error",
+      );
       return;
     }
 
-    if (!window.confirm(`Decommission staff account for "${targetUser.username}"?`)) {
+    if (
+      !window.confirm(
+        `Decommission staff account for "${targetUser.username}"?`,
+      )
+    ) {
       return;
     }
 
@@ -287,7 +306,9 @@ export default function AdminDashboard() {
   };
 
   // Immediately Upload Cover Image
-  const handleMainImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -307,7 +328,9 @@ export default function AdminDashboard() {
   };
 
   // Immediately Add Gallery Images
-  const handleGalleryImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGalleryImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -337,7 +360,7 @@ export default function AdminDashboard() {
       const currentGallery = prev.galleryImages || [];
       return {
         ...prev,
-        galleryImages: currentGallery.filter((_, idx) => idx !== indexToRemove)
+        galleryImages: currentGallery.filter((_, idx) => idx !== indexToRemove),
       };
     });
   };
@@ -353,21 +376,43 @@ export default function AdminDashboard() {
       category: "Perfume",
       description: "Crafted with handpicked raw materials.",
       rating: 4.5,
-      mainImage: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600",
+      mainImage: "",
       galleryImages: [],
       accords: [
         { name: "Woody", value: 70, color: "#8d6e63" },
-        { name: "Spicy", value: 30, color: "#d84315" }
+        { name: "Spicy", value: 30, color: "#d84315" },
       ],
-      fragranceProfile: { longevity: "8 Hours", projection: "Strong", sillage: "Heavy" },
+      fragranceProfile: {
+        longevity: "8 Hours",
+        projection: "Strong",
+        sillage: "Heavy",
+      },
       dayNight: "Both",
       seasons: ["Spring", "Autumn"],
       notes: {
-        top: [{ name: "Mandarin Orange", iconUrl: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=100" }],
-        middle: [{ name: "Turkish Rose", iconUrl: "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100" }],
-        base: [{ name: "Indonesian Patchouli", iconUrl: "https://images.unsplash.com/photo-1550605995-1c390543f324?w=100" }]
+        top: [
+          {
+            name: "Mandarin Orange",
+            iconUrl:
+              "https://images.unsplash.com/photo-1541643600914-78b084683601?w=100",
+          },
+        ],
+        middle: [
+          {
+            name: "Turkish Rose",
+            iconUrl:
+              "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100",
+          },
+        ],
+        base: [
+          {
+            name: "Indonesian Patchouli",
+            iconUrl:
+              "https://images.unsplash.com/photo-1550605995-1c390543f324?w=100",
+          },
+        ],
       },
-      stockStatus: "In Stock"
+      stockStatus: "In Stock",
     });
     setIsFormOpen(true);
   };
@@ -380,10 +425,10 @@ export default function AdminDashboard() {
       notes: {
         top: item.notes?.top ? [...item.notes.top] : [],
         middle: item.notes?.middle ? [...item.notes.middle] : [],
-        base: item.notes?.base ? [...item.notes.base] : []
+        base: item.notes?.base ? [...item.notes.base] : [],
       },
       galleryImages: item.galleryImages ? [...item.galleryImages] : [],
-      stockStatus: item.stockStatus || "In Stock"
+      stockStatus: item.stockStatus || "In Stock",
     });
     setIsFormOpen(true);
   };
@@ -391,9 +436,16 @@ export default function AdminDashboard() {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPerfume) return;
-    
-    if (!editingPerfume.name?.trim() || !editingPerfume.brand?.trim() || !editingPerfume.code?.trim()) {
-      triggerToast("Verification failed: Please feed name, code, and designer brand.", "error");
+
+    if (
+      !editingPerfume.name?.trim() ||
+      !editingPerfume.brand?.trim() ||
+      !editingPerfume.code?.trim()
+    ) {
+      triggerToast(
+        "Verification failed: Please feed name, code, and designer brand.",
+        "error",
+      );
       return;
     }
 
@@ -401,13 +453,16 @@ export default function AdminDashboard() {
     try {
       if (editingPerfume.id) {
         // Update edit
-        await perfumeService.update(editingPerfume.id, editingPerfume as Perfume);
+        await perfumeService.update(
+          editingPerfume.id,
+          editingPerfume as Perfume,
+        );
         triggerToast(`Updated fragrance: ${editingPerfume.name}`);
       } else {
         // Save new
         const completion: Perfume = {
           ...(editingPerfume as Perfume),
-          id: String(Date.now())
+          id: String(Date.now()),
         };
         await perfumeService.create(completion);
         triggerToast(`New fragrance registered: ${editingPerfume.name}`);
@@ -424,17 +479,30 @@ export default function AdminDashboard() {
 
   // Form Row Helpers
   const addAccordRow = () => {
-    const name = window.prompt("Type accord structural category (e.g. Amber, Citrus, Floral):");
+    const name = window.prompt(
+      "Type accord structural category (e.g. Amber, Citrus, Floral):",
+    );
     if (!name?.trim()) return;
     const valueNum = Number(window.prompt("Feed ratio score (0 - 100):")) || 50;
-    const hex = window.prompt("Hex color overlay (or leave blank for custom):", "#8a8a8a") || "#c19253";
+    const hex =
+      window.prompt(
+        "Hex color overlay (or leave blank for custom):",
+        "#8a8a8a",
+      ) || "#c19253";
 
     setEditingPerfume((prev) => {
       if (!prev) return prev;
       const currentAccords = prev.accords || [];
       return {
         ...prev,
-        accords: [...currentAccords, { name: name.trim(), value: Math.min(100, Math.max(0, valueNum)), color: hex }]
+        accords: [
+          ...currentAccords,
+          {
+            name: name.trim(),
+            value: Math.min(100, Math.max(0, valueNum)),
+            color: hex,
+          },
+        ],
       };
     });
   };
@@ -443,20 +511,38 @@ export default function AdminDashboard() {
     setEditingPerfume((prev) => {
       if (!prev) return prev;
       const currentAccords = prev.accords || [];
-      return { ...prev, accords: currentAccords.filter((_, idx) => idx !== index) };
+      return {
+        ...prev,
+        accords: currentAccords.filter((_, idx) => idx !== index),
+      };
     });
   };
 
   const addNoteRow = (tier: "top" | "middle" | "base") => {
-    const rawName = window.prompt(`Material designation to add in ${tier.toUpperCase()} notes:`);
+    const rawName = window.prompt(
+      `Material designation to add in ${tier.toUpperCase()} notes:`,
+    );
     if (!rawName?.trim()) return;
-    const rawUrl = window.prompt("Material visual reference (Unsplash URL or empty for default):", "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100");
+    const rawUrl = window.prompt(
+      "Material visual reference (Unsplash URL or empty for default):",
+      "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100",
+    );
 
     setEditingPerfume((prev) => {
       if (!prev) return prev;
-      const notes = prev.notes ? { ...prev.notes } : { top: [], middle: [], base: [] };
+      const notes = prev.notes
+        ? { ...prev.notes }
+        : { top: [], middle: [], base: [] };
       const list = notes[tier] || [];
-      notes[tier] = [...list, { name: rawName.trim(), iconUrl: rawUrl || "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100" }];
+      notes[tier] = [
+        ...list,
+        {
+          name: rawName.trim(),
+          iconUrl:
+            rawUrl ||
+            "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100",
+        },
+      ];
       return { ...prev, notes };
     });
   };
@@ -464,7 +550,9 @@ export default function AdminDashboard() {
   const removeNoteRow = (tier: "top" | "middle" | "base", index: number) => {
     setEditingPerfume((prev) => {
       if (!prev) return prev;
-      const notes = prev.notes ? { ...prev.notes } : { top: [], middle: [], base: [] };
+      const notes = prev.notes
+        ? { ...prev.notes }
+        : { top: [], middle: [], base: [] };
       const list = notes[tier] || [];
       notes[tier] = list.filter((_, idx) => idx !== index);
       return { ...prev, notes };
@@ -488,9 +576,10 @@ export default function AdminDashboard() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.code.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesGender = filterGender === "All" || p.gender === filterGender;
-    const matchesCategory = filterCategory === "All" || p.category === filterCategory;
+    const matchesCategory =
+      filterCategory === "All" || p.category === filterCategory;
     const matchesStock = filterStock === "All" || p.stockStatus === filterStock;
 
     return matchesQuery && matchesGender && matchesCategory && matchesStock;
@@ -498,7 +587,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen flex bg-[#faf8f5] dark:bg-black text-slate-800 dark:text-slate-100 font-sans antialiased overflow-hidden transition-colors duration-300">
-      
       {/* Toast HUD Overlay */}
       <div className="fixed top-5 right-5 z-[9999] p-2 space-y-2 pointer-events-none">
         <AnimatePresence>
@@ -528,9 +616,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* 1. COMPACT SIDEBAR LAYOUT */}
-      <aside className="w-64 bg-white dark:bg-black border-r border-slate-200 dark:border-[#c19253]/20 flex flex-col justify-between shrink-0 select-none transition-colors duration-300">
+      <aside className="w-64 bg-white dark:bg-black border-r border-slate-200 dark:border-[#c19253]/20 flex flex-col justify-between shrink-0 select-none transition-colors duration-300 fixed left-0 top-0 h-screen">
         <div className="flex flex-col min-h-0">
-          
           {/* Brand header */}
           <div className="p-6 border-b border-slate-200 dark:border-[#c19253]/20 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -558,11 +645,13 @@ export default function AdminDashboard() {
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate leading-none mb-1">
                   {currentUser.username}
                 </p>
-                <span className={`inline-block text-[8px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                  currentUser.role === 'admin' 
-                    ? 'bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 border border-red-200 dark:border-red-900/30' 
-                    : 'bg-indigo-50 dark:bg-indigo-950/20 text-indigo-650 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/30'
-                }`}>
+                <span
+                  className={`inline-block text-[8px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                    currentUser.role === "admin"
+                      ? "bg-red-50 dark:bg-red-950/20 text-red-650 dark:text-red-400 border border-red-200 dark:border-red-900/30"
+                      : "bg-indigo-50 dark:bg-indigo-950/20 text-indigo-650 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/30"
+                  }`}
+                >
                   {currentUser.role}
                 </span>
               </div>
@@ -572,7 +661,10 @@ export default function AdminDashboard() {
           {/* Internal Pages Navigation options */}
           <nav className="px-3 space-y-1">
             <button
-              onClick={() => { setActiveTab("perfumes"); setIsFormOpen(false); }}
+              onClick={() => {
+                setActiveTab("perfumes");
+                setIsFormOpen(false);
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
                 activeTab === "perfumes"
                   ? "bg-slate-100 dark:bg-[#c19253]/15 text-teal-650 dark:text-[#c19253] font-bold"
@@ -583,7 +675,10 @@ export default function AdminDashboard() {
               Perfumes Collection
             </button>
             <button
-              onClick={() => { setActiveTab("requests"); setIsFormOpen(false); }}
+              onClick={() => {
+                setActiveTab("requests");
+                setIsFormOpen(false);
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-medium tracking-wide transition-all relative ${
                 activeTab === "requests"
                   ? "bg-slate-100 dark:bg-[#c19253]/15 text-teal-650 dark:text-[#c19253] font-bold"
@@ -592,15 +687,18 @@ export default function AdminDashboard() {
             >
               <Inbox size={16} />
               Customer Requests
-              {requests.filter(r => !r.resolved).length > 0 && (
+              {requests.filter((r) => !r.resolved).length > 0 && (
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-rose-500 font-mono text-[9px] font-bold text-white px-1.5 py-0.5 rounded-md">
-                  {requests.filter(r => !r.resolved).length}
+                  {requests.filter((r) => !r.resolved).length}
                 </span>
               )}
             </button>
             {currentUser?.role === "admin" && (
               <button
-                onClick={() => { setActiveTab("users"); setIsFormOpen(false); }}
+                onClick={() => {
+                  setActiveTab("users");
+                  setIsFormOpen(false);
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-xs font-medium tracking-wide transition-all ${
                   activeTab === "users"
                     ? "bg-slate-100 dark:bg-[#c19253]/15 text-teal-650 dark:text-[#c19253] font-bold"
@@ -633,12 +731,14 @@ export default function AdminDashboard() {
       </aside>
 
       {/* 2. MAIN HUB WORKSPACE SCREEN */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#faf8f5] dark:bg-black transition-colors duration-300">
-        
+      <main className="ml-64 min-h-screen flex flex-col flex-1 min-w-0 overflow-hidden relative bg-[#faf8f5] dark:bg-black transition-colors duration-300">
         {/* Core Loading State Cover */}
         {actionLoading && (
           <div className="absolute inset-0 bg-[#faf8f5]/65 dark:bg-black/60 backdrop-blur-[1.5px] z-50 flex flex-col items-center justify-center gap-3 select-none">
-            <Loader2 className="animate-spin text-teal-600 dark:text-teal-400" size={32} />
+            <Loader2
+              className="animate-spin text-teal-600 dark:text-teal-400"
+              size={32}
+            />
             <span className="text-xs font-mono tracking-widest text-slate-500 dark:text-slate-400 uppercase">
               Executing Cloud Operations...
             </span>
@@ -651,12 +751,14 @@ export default function AdminDashboard() {
             <h1 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider pl-1">
               Atelier Workspace Dashboard
             </h1>
-            <span className="text-[10px] text-slate-400 dark:text-slate-500">/</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">
+              /
+            </span>
             <span className="text-[10px] uppercase font-mono tracking-widest text-teal-600 dark:text-[#c19253] font-bold">
               {activeTab}
             </span>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <button
               onClick={toggleAdminDark}
@@ -682,10 +784,10 @@ export default function AdminDashboard() {
         </header>
 
         {/* WORK CONSOLE VIEW CONTENT */}
-        <div className={`flex-1 overflow-y-auto relative ${isFormOpen && activeTab === "perfumes" ? "p-0" : "p-8"}`}>
-          
+        <div
+          className={`flex-1 overflow-y-auto relative ${isFormOpen && activeTab === "perfumes" ? "p-0" : "p-8"}`}
+        >
           <AnimatePresence mode="wait">
-            
             {/* TAB 1: PERFUMES COLLECTION */}
             {activeTab === "perfumes" && !isFormOpen && (
               <motion.div
@@ -696,10 +798,8 @@ export default function AdminDashboard() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                
                 {/* Search & Actions bar */}
                 <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-white dark:bg-black border border-slate-200 dark:border-[#c19253]/20 p-5 rounded-xl shadow-md select-none transition-colors duration-305">
-                  
                   {/* Search bar */}
                   <div className="flex-1 relative max-w-md">
                     <input
@@ -709,7 +809,10 @@ export default function AdminDashboard() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
+                    <Search
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                      size={14}
+                    />
                   </div>
 
                   {/* Multi-Filter parameters */}
@@ -760,14 +863,26 @@ export default function AdminDashboard() {
                 {/* table list */}
                 {loadingPerfumes ? (
                   <div className="flex py-20 flex-col items-center justify-center gap-2">
-                    <Loader2 className="animate-spin text-slate-500" size={24} />
-                    <span className="text-xs font-mono text-slate-500">Querying collection archive...</span>
+                    <Loader2
+                      className="animate-spin text-slate-500"
+                      size={24}
+                    />
+                    <span className="text-xs font-mono text-slate-500">
+                      Querying collection archive...
+                    </span>
                   </div>
                 ) : filteredPerfumes.length === 0 ? (
                   <div className="border border-slate-200 dark:border-zinc-800 border-dashed rounded-xl p-16 text-center select-none bg-slate-100/30 dark:bg-zinc-900/10">
-                    <p className="text-slate-500 text-sm">No formulations match the current parameters.</p>
+                    <p className="text-slate-500 text-sm">
+                      No formulations match the current parameters.
+                    </p>
                     <button
-                      onClick={() => { setSearchQuery(""); setFilterCategory("All"); setFilterGender("All"); setFilterStock("All"); }}
+                      onClick={() => {
+                        setSearchQuery("");
+                        setFilterCategory("All");
+                        setFilterGender("All");
+                        setFilterStock("All");
+                      }}
                       className="text-[#c19253] text-xs font-mono mt-3 hover:underline"
                     >
                       Reset active queries
@@ -783,24 +898,28 @@ export default function AdminDashboard() {
                             <th className="py-4.5 px-6">Ref Code</th>
                             <th className="py-4.5 px-6">Category</th>
                             <th className="py-4.5 px-6">Gender</th>
-                            <th className="py-4.5 px-6 text-right">Price (ETB)</th>
-                            <th className="py-4.5 px-6 text-center">Stock status</th>
+                            <th className="py-4.5 px-6 text-right">
+                              Price (ETB)
+                            </th>
+                            <th className="py-4.5 px-6 text-center">
+                              Stock status
+                            </th>
                             <th className="py-4.5 px-6 text-center">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-150 dark:divide-[#c19253]/15 font-sans text-xs">
                           {filteredPerfumes.map((p) => (
-                            <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-[#c19253]/5 transition-colors">
+                            <tr
+                              key={p.id}
+                              className="hover:bg-slate-50 dark:hover:bg-[#c19253]/5 transition-colors"
+                            >
                               <td className="py-4 px-6">
                                 <div className="flex items-center gap-4">
                                   <div className="w-11 h-11 shrink-0 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/20 rounded-lg p-1 flex items-center justify-center overflow-hidden">
                                     <img
-                                      src={p.mainImage}
+                                      src={imageUrl(p.mainImage)}
                                       alt=""
                                       className="max-w-full max-h-full object-contain"
-                                      onError={(e) => {
-                                        e.currentTarget.src = "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=100";
-                                      }}
                                     />
                                   </div>
                                   <div className="min-w-0">
@@ -813,25 +932,31 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               </td>
-                              
+
                               <td className="py-4 px-6 font-mono font-bold text-slate-500 dark:text-zinc-400">
                                 {p.code}
                               </td>
 
                               <td className="py-4 px-6">
                                 <span className="text-slate-700 dark:text-zinc-300 text-[11px] font-medium">
-                                  {p.category === "Perfume" ? "Signature" : p.category === "Brand Perfume" ? "Designer" : "Private Blend"}
+                                  {p.category === "Perfume"
+                                    ? "Signature"
+                                    : p.category === "Brand Perfume"
+                                      ? "Designer"
+                                      : "Private Blend"}
                                 </span>
                               </td>
 
                               <td className="py-4 px-6">
-                                <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-mono uppercase font-bold tracking-wider ${
-                                  p.gender === 'Male' 
-                                    ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400' 
-                                    : p.gender === 'Female' 
-                                    ? 'bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400' 
-                                    : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'
-                                }`}>
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-mono uppercase font-bold tracking-wider ${
+                                    p.gender === "Male"
+                                      ? "bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+                                      : p.gender === "Female"
+                                        ? "bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400"
+                                        : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400"
+                                  }`}
+                                >
                                   {p.gender}
                                 </span>
                               </td>
@@ -841,13 +966,15 @@ export default function AdminDashboard() {
                               </td>
 
                               <td className="py-4 px-6 text-center">
-                                <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider ${
-                                  p.stockStatus === 'In Stock'
-                                    ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30'
-                                    : p.stockStatus === 'Low Stock'
-                                    ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30'
-                                    : 'bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30'
-                                }`}>
+                                <span
+                                  className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider ${
+                                    p.stockStatus === "In Stock"
+                                      ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30"
+                                      : p.stockStatus === "Low Stock"
+                                        ? "bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30"
+                                        : "bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30"
+                                  }`}
+                                >
                                   {p.stockStatus || "In Stock"}
                                 </span>
                               </td>
@@ -862,7 +989,9 @@ export default function AdminDashboard() {
                                     <Edit2 size={13} />
                                   </button>
                                   <button
-                                    onClick={() => handleDeletePerfume(p.id, p.name)}
+                                    onClick={() =>
+                                      handleDeletePerfume(p.id, p.name)
+                                    }
                                     className="p-1.5 bg-slate-50 hover:bg-rose-55 border border-slate-200 dark:bg-zinc-800 dark:hover:bg-rose-500/25 dark:border-zinc-700/60 dark:hover:border-rose-500/30 text-[#f43f5e] dark:text-[#f43f5e] rounded-md transition-colors"
                                     title="Retire fragrance"
                                   >
@@ -890,19 +1019,24 @@ export default function AdminDashboard() {
                 transition={{ duration: 0.2 }}
                 className="w-full min-h-full space-y-6 select-none bg-white dark:bg-black p-8 transition-colors"
               >
-                
                 {/* Header */}
                 <div className="flex justify-between items-center border-b border-slate-150 dark:border-[#c19253]/20 pb-5">
                   <div>
                     <h2 className="text-lg font-bold text-slate-800 dark:text-[#c19253] uppercase tracking-wider font-serif">
-                      {editingPerfume.id ? "Refine Scent Specification" : "Register Scent Specification"}
+                      {editingPerfume.id
+                        ? "Refine Scent Specification"
+                        : "Register Scent Specification"}
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
-                      Set formulation aspects, raw chords, sillage metrics, and graphics.
+                      Set formulation aspects, raw chords, sillage metrics, and
+                      graphics.
                     </p>
                   </div>
                   <button
-                    onClick={() => { setIsFormOpen(false); setEditingPerfume(null); }}
+                    onClick={() => {
+                      setIsFormOpen(false);
+                      setEditingPerfume(null);
+                    }}
                     className="w-8 h-8 rounded-md bg-slate-100 dark:bg-black border border-slate-200 dark:border-[#c19253]/30 flex items-center justify-center text-slate-500 dark:text-[#c19253] hover:text-slate-800 dark:hover:text-white dark:hover:bg-[#c19253]/15 transition-colors"
                   >
                     <X size={15} />
@@ -910,7 +1044,6 @@ export default function AdminDashboard() {
                 </div>
 
                 <form onSubmit={handleFormSubmit} className="space-y-8 text-xs">
-                  
                   {/* Row: Basics */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -922,7 +1055,12 @@ export default function AdminDashboard() {
                         required
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white"
                         value={editingPerfume.name || ""}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, name: e.target.value })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            name: e.target.value,
+                          })
+                        }
                         placeholder="e.g. Cedarwood Gold Absolute"
                       />
                     </div>
@@ -936,12 +1074,16 @@ export default function AdminDashboard() {
                         required
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white"
                         value={editingPerfume.brand || ""}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, brand: e.target.value })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            brand: e.target.value,
+                          })
+                        }
                         placeholder="e.g. Private Atelier"
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
                       <label className="block text-[10px] uppercase font-mono tracking-wider font-bold text-slate-500 dark:text-[#c19253]/80 mb-1.5">
@@ -952,7 +1094,12 @@ export default function AdminDashboard() {
                         required
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 font-mono transition-colors bg-white"
                         value={editingPerfume.code || ""}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, code: e.target.value })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            code: e.target.value,
+                          })
+                        }
                         placeholder="e.g. P-WA40"
                       />
                     </div>
@@ -966,7 +1113,12 @@ export default function AdminDashboard() {
                         required
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 font-mono transition-colors bg-white"
                         value={editingPerfume.price || 0}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, price: Number(e.target.value) || 0 })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            price: Number(e.target.value) || 0,
+                          })
+                        }
                       />
                     </div>
 
@@ -977,7 +1129,12 @@ export default function AdminDashboard() {
                       <select
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-3 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white"
                         value={editingPerfume.category}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, category: e.target.value as Category })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            category: e.target.value as Category,
+                          })
+                        }
                       >
                         <option value="Perfume">Signature</option>
                         <option value="Brand Perfume">Designer</option>
@@ -992,7 +1149,12 @@ export default function AdminDashboard() {
                       <select
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-3 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white"
                         value={editingPerfume.gender}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, gender: e.target.value as Gender })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            gender: e.target.value as Gender,
+                          })
+                        }
                       >
                         <option value="Male">Masculine</option>
                         <option value="Female">Feminine</option>
@@ -1001,7 +1163,6 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                   </div>
-
                   {/* Wear Settings & Stock */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
@@ -1011,7 +1172,12 @@ export default function AdminDashboard() {
                       <select
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-3 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white"
                         value={editingPerfume.dayNight}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, dayNight: e.target.value as DayNight })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            dayNight: e.target.value as DayNight,
+                          })
+                        }
                       >
                         <option value="Day">Day Only</option>
                         <option value="Night">Night Only</option>
@@ -1026,7 +1192,12 @@ export default function AdminDashboard() {
                       <select
                         className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2.5 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white"
                         value={editingPerfume.stockStatus || "In Stock"}
-                        onChange={(e) => setEditingPerfume({ ...editingPerfume, stockStatus: e.target.value as StockStatus })}
+                        onChange={(e) =>
+                          setEditingPerfume({
+                            ...editingPerfume,
+                            stockStatus: e.target.value as StockStatus,
+                          })
+                        }
                       >
                         <option value="In Stock">In Stock</option>
                         <option value="Low Stock">Low Stock</option>
@@ -1046,7 +1217,12 @@ export default function AdminDashboard() {
                           step="0.1"
                           className="flex-1 accent-[#c19253] cursor-pointer h-2 bg-slate-100 dark:bg-black border-0"
                           value={editingPerfume.rating || 4.5}
-                          onChange={(e) => setEditingPerfume({ ...editingPerfume, rating: Number(e.target.value) })}
+                          onChange={(e) =>
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              rating: Number(e.target.value),
+                            })
+                          }
                         />
                         <span className="font-mono font-bold text-[#c19253] dark:text-[#c19253] w-8 text-right text-xs">
                           {editingPerfume.rating || 4.5} ★
@@ -1054,14 +1230,15 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </div>
-
                   {/* Multi-select Wear Seasons */}
                   <div>
                     <label className="block text-[10px] uppercase font-mono tracking-wider font-bold text-slate-500 dark:text-[#c19253]/80 mb-2">
                       Wear Season Suitability (Select Multi-choice)
                     </label>
                     <div className="grid grid-cols-4 gap-2.5">
-                      {(["Winter", "Spring", "Summer", "Autumn"] as Season[]).map((season) => {
+                      {(
+                        ["Winter", "Spring", "Summer", "Autumn"] as Season[]
+                      ).map((season) => {
                         const active = editingPerfume.seasons?.includes(season);
                         return (
                           <button
@@ -1079,7 +1256,8 @@ export default function AdminDashboard() {
                         );
                       })}
                     </div>
-                  </div>                  {/* Description Box */}
+                  </div>{" "}
+                  {/* Description Box */}
                   <div>
                     <label className="block text-[10px] uppercase font-mono tracking-wider font-bold text-slate-500 dark:text-[#c19253]/80 mb-1.5">
                       Fragrance Narrative (Description)
@@ -1088,11 +1266,15 @@ export default function AdminDashboard() {
                       rows={3}
                       className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-3 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 placeholder-slate-400 dark:placeholder-zinc-650 resize-none leading-relaxed transition-colors bg-white font-sans"
                       value={editingPerfume.description || ""}
-                      onChange={(e) => setEditingPerfume({ ...editingPerfume, description: e.target.value })}
+                      onChange={(e) =>
+                        setEditingPerfume({
+                          ...editingPerfume,
+                          description: e.target.value,
+                        })
+                      }
                       placeholder="Convey notes characteristics, material blends, etc."
                     />
                   </div>
-
                   {/* Image immediate uploads HUD */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/20 rounded-lg transition-colors">
                     {/* Main Image upload */}
@@ -1103,14 +1285,15 @@ export default function AdminDashboard() {
                         </label>
                         {imageUploading && (
                           <span className="text-[10px] font-mono text-teal-600 dark:text-teal-400 flex items-center gap-1">
-                            <Loader2 size={10} className="animate-spin" /> Uploading block...
+                            <Loader2 size={10} className="animate-spin" />{" "}
+                            Uploading block...
                           </span>
                         )}
                       </div>
-                                           <div className="flex gap-4 items-center">
+                      <div className="flex gap-4 items-center">
                         <div className="w-16 h-16 shrink-0 bg-slate-50 dark:bg-black ring-1 ring-slate-250 dark:ring-[#c19253]/20 rounded-lg p-1.5 flex items-center justify-center overflow-hidden transition-colors">
                           <img
-                            src={editingPerfume.mainImage}
+                            src={imageUrl(editingPerfume.mainImage)}
                             alt=""
                             className="max-w-full max-h-full object-contain"
                           />
@@ -1119,8 +1302,13 @@ export default function AdminDashboard() {
                           <input
                             type="text"
                             className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-3 py-1.5 outline-none font-mono text-[10px] text-slate-500 dark:text-slate-400 mb-2 focus:border-slate-400 transition-colors bg-white"
-                            value={editingPerfume.mainImage || ""}
-                            onChange={(e) => setEditingPerfume({ ...editingPerfume, mainImage: e.target.value })}
+                            value={imageUrl(editingPerfume.mainImage) || ""}
+                            onChange={(e) =>
+                              setEditingPerfume({
+                                ...editingPerfume,
+                                mainImage: e.target.value,
+                              })
+                            }
                           />
                           <input
                             type="file"
@@ -1148,15 +1336,23 @@ export default function AdminDashboard() {
                         </label>
                         {galleryUploading && (
                           <span className="text-[10px] font-mono text-teal-600 dark:text-[#c19253] flex items-center gap-1">
-                            <Loader2 size={10} className="animate-spin" /> Processing file gallery...
+                            <Loader2 size={10} className="animate-spin" />{" "}
+                            Processing file gallery...
                           </span>
                         )}
                       </div>
 
                       <div className="flex gap-2 p-1 overflow-x-auto select-none bg-slate-100/20 dark:bg-black/20 max-h-16 rounded-md">
                         {editingPerfume.galleryImages?.map((img, i) => (
-                          <div key={i} className="relative w-11 h-11 shrink-0 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded p-0.5 group">
-                            <img src={img} alt="" className="w-full h-full object-contain" />
+                          <div
+                            key={i}
+                            className="relative w-11 h-11 shrink-0 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded p-0.5 group"
+                          >
+                            <img
+                              src={imageUrl(img)}
+                              alt=""
+                              className="w-full h-full object-contain"
+                            />
                             <button
                               type="button"
                               onClick={() => removeGalleryImage(i)}
@@ -1186,7 +1382,8 @@ export default function AdminDashboard() {
                         </button>
                       </div>
                     </div>
-                  </div>                  {/* Fragrance Sillage metrics profile */}
+                  </div>{" "}
+                  {/* Fragrance Sillage metrics profile */}
                   <div className="space-y-4 p-5 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/20 rounded-lg">
                     <h3 className="text-[10px] uppercase font-mono tracking-wider font-extrabold text-slate-600 dark:text-[#c19253]/90 border-b border-slate-200 dark:border-[#c19253]/20 pb-2">
                       Scent Longevity & Sillage Power Profile
@@ -1200,48 +1397,73 @@ export default function AdminDashboard() {
                           type="text"
                           required
                           className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white font-sans"
-                          value={editingPerfume.fragranceProfile?.longevity || "8 Hours"}
-                          onChange={(e) => setEditingPerfume({
-                            ...editingPerfume,
-                            fragranceProfile: { ...editingPerfume.fragranceProfile!, longevity: e.target.value }
-                          })}
+                          value={
+                            editingPerfume.fragranceProfile?.longevity ||
+                            "8 Hours"
+                          }
+                          onChange={(e) =>
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              fragranceProfile: {
+                                ...editingPerfume.fragranceProfile!,
+                                longevity: e.target.value,
+                              },
+                            })
+                          }
                         />
                       </div>
 
                       <div>
                         <label className="block text-[10px] uppercase font-mono tracking-wider font-bold text-slate-500 dark:text-[#c19253]/80 mb-1.5">
-                          Scent Projection Scope (e.g., 'Heavy', 'Intimate', 'Moderate')
+                          Scent Projection Scope (e.g., 'Heavy', 'Intimate',
+                          'Moderate')
                         </label>
                         <input
                           type="text"
                           required
                           className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white font-sans"
-                          value={editingPerfume.fragranceProfile?.projection || "Strong"}
-                          onChange={(e) => setEditingPerfume({
-                            ...editingPerfume,
-                            fragranceProfile: { ...editingPerfume.fragranceProfile!, projection: e.target.value }
-                          })}
+                          value={
+                            editingPerfume.fragranceProfile?.projection ||
+                            "Strong"
+                          }
+                          onChange={(e) =>
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              fragranceProfile: {
+                                ...editingPerfume.fragranceProfile!,
+                                projection: e.target.value,
+                              },
+                            })
+                          }
                         />
                       </div>
 
                       <div>
                         <label className="block text-[10px] uppercase font-mono tracking-wider font-bold text-slate-500 dark:text-[#c19253]/80 mb-1.5">
-                          Sillage Impression (e.g., 'Heavy Trail', 'Intimate Cling')
+                          Sillage Impression (e.g., 'Heavy Trail', 'Intimate
+                          Cling')
                         </label>
                         <input
                           type="text"
                           required
                           className="w-full bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg px-4 py-2 outline-none text-slate-800 dark:text-white focus:border-slate-400 dark:focus:border-[#c19253]/60 transition-colors bg-white font-sans"
-                          value={editingPerfume.fragranceProfile?.sillage || "Moderate"}
-                          onChange={(e) => setEditingPerfume({
-                            ...editingPerfume,
-                            fragranceProfile: { ...editingPerfume.fragranceProfile!, sillage: e.target.value }
-                          })}
+                          value={
+                            editingPerfume.fragranceProfile?.sillage ||
+                            "Moderate"
+                          }
+                          onChange={(e) =>
+                            setEditingPerfume({
+                              ...editingPerfume,
+                              fragranceProfile: {
+                                ...editingPerfume.fragranceProfile!,
+                                sillage: e.target.value,
+                              },
+                            })
+                          }
                         />
                       </div>
                     </div>
                   </div>
-
                   {/* Accords editor row section */}
                   <div className="space-y-4 p-5 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/20 rounded-lg">
                     <div className="flex justify-between items-center border-b border-slate-200 dark:border-[#c19253]/20 pb-2">
@@ -1257,8 +1479,12 @@ export default function AdminDashboard() {
                       </button>
                     </div>
 
-                    {(!editingPerfume.accords || editingPerfume.accords.length === 0) ? (
-                      <p className="text-slate-500 italic text-[11px] py-1 pl-1">No formulation accords configured. Click above to append rows.</p>
+                    {!editingPerfume.accords ||
+                    editingPerfume.accords.length === 0 ? (
+                      <p className="text-slate-500 italic text-[11px] py-1 pl-1">
+                        No formulation accords configured. Click above to append
+                        rows.
+                      </p>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                         {editingPerfume.accords.map((acc, index) => (
@@ -1267,17 +1493,21 @@ export default function AdminDashboard() {
                             className="flex items-center justify-between bg-slate-50 dark:bg-black ring-1 ring-slate-200 dark:ring-[#c19253]/20 p-3 rounded-lg border border-slate-255 dark:border-[#c19253]/20 shadow-sm"
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-5 h-5 rounded-md" style={{ backgroundColor: acc.color }} />
+                              <div
+                                className="w-5 h-5 rounded-md"
+                                style={{ backgroundColor: acc.color }}
+                              />
                               <div>
                                 <span className="font-bold text-slate-700 dark:text-zinc-200 capitalize text-xs tracking-wide">
                                   {acc.name}
                                 </span>
                                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-mono">
-                                  Score ratio: {acc.value}% &bull; Color: <span className="uppercase">{acc.color}</span>
+                                  Score ratio: {acc.value}% &bull; Color:{" "}
+                                  <span className="uppercase">{acc.color}</span>
                                 </span>
                               </div>
                             </div>
-                            
+
                             <button
                               type="button"
                               onClick={() => removeAccordRow(index)}
@@ -1289,7 +1519,8 @@ export default function AdminDashboard() {
                         ))}
                       </div>
                     )}
-                  </div>                  {/* Notes groups top middle base */}
+                  </div>{" "}
+                  {/* Notes groups top middle base */}
                   <div className="space-y-6 p-5 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 rounded-lg">
                     <h3 className="text-[10px] uppercase font-mono tracking-wider font-extrabold text-slate-600 dark:text-[#c19253]/90 border-b border-slate-255 dark:border-[#c19253]/20 pb-2">
                       Raw notes materials hierarchy formulation
@@ -1298,12 +1529,24 @@ export default function AdminDashboard() {
                     {(["top", "middle", "base"] as const).map((tier) => (
                       <div key={tier} className="space-y-2 pb-2 last:pb-0">
                         <div className="flex justify-between items-center text-[10px] font-mono uppercase font-bold tracking-wider">
-                          <span className={`${
-                            tier === "top" ? 'text-amber-500 dark:text-amber-400' : tier === 'middle' ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-550'
-                          }`}>
-                            {tier} materials (evaporates {tier === 'top' ? 'first' : tier === 'middle' ? 'mid-session' : 'slowly'})
+                          <span
+                            className={`${
+                              tier === "top"
+                                ? "text-amber-500 dark:text-amber-400"
+                                : tier === "middle"
+                                  ? "text-indigo-500 dark:text-indigo-400"
+                                  : "text-slate-550"
+                            }`}
+                          >
+                            {tier} materials (evaporates{" "}
+                            {tier === "top"
+                              ? "first"
+                              : tier === "middle"
+                                ? "mid-session"
+                                : "slowly"}
+                            )
                           </span>
-                          
+
                           <button
                             type="button"
                             onClick={() => addNoteRow(tier)}
@@ -1313,8 +1556,11 @@ export default function AdminDashboard() {
                           </button>
                         </div>
 
-                        {(!editingPerfume.notes?.[tier] || editingPerfume.notes[tier].length === 0) ? (
-                          <p className="text-slate-400 italic text-[11px] pt-1 pl-1">Empty list.</p>
+                        {!editingPerfume.notes?.[tier] ||
+                        editingPerfume.notes[tier].length === 0 ? (
+                          <p className="text-slate-400 italic text-[11px] pt-1 pl-1">
+                            Empty list.
+                          </p>
                         ) : (
                           <div className="flex flex-wrap gap-2 pt-1">
                             {editingPerfume.notes[tier].map((item, i) => (
@@ -1327,10 +1573,13 @@ export default function AdminDashboard() {
                                   alt=""
                                   className="w-4 h-4 rounded-full object-cover"
                                   onError={(e) => {
-                                    e.currentTarget.src = "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100";
+                                    e.currentTarget.src =
+                                      "https://images.unsplash.com/photo-1558223635-a6a9be78efaa?w=100";
                                   }}
                                 />
-                                <span className="font-medium text-slate-700 dark:text-slate-350">{item.name}</span>
+                                <span className="font-medium text-slate-700 dark:text-slate-350">
+                                  {item.name}
+                                </span>
                                 <button
                                   type="button"
                                   onClick={() => removeNoteRow(tier, i)}
@@ -1345,12 +1594,14 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
-
                   {/* Actions Bar Footer */}
                   <div className="flex justify-end gap-3.5 border-t border-slate-200 dark:border-[#c19253]/20 pt-6 mt-8">
                     <button
                       type="button"
-                      onClick={() => { setIsFormOpen(false); setEditingPerfume(null); }}
+                      onClick={() => {
+                        setIsFormOpen(false);
+                        setEditingPerfume(null);
+                      }}
                       className="px-6 py-3 border border-slate-200 dark:border-[#c19253]/30 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-[#c19253] rounded-lg font-mono text-[10px] uppercase font-bold tracking-widest hover:bg-slate-50 dark:hover:bg-[#c19253]/10 transition-colors"
                     >
                       Cancel Return
@@ -1362,7 +1613,6 @@ export default function AdminDashboard() {
                       Save Specifications
                     </button>
                   </div>
-
                 </form>
               </motion.div>
             )}
@@ -1377,14 +1627,15 @@ export default function AdminDashboard() {
                 transition={{ duration: 0.2 }}
                 className="space-y-6"
               >
-                               {/* Switch bar */}
+                {/* Switch bar */}
                 <div className="flex items-center justify-between bg-[#FAF9F5] dark:bg-black border border-slate-200 dark:border-[#c19253]/20 p-5 rounded-xl shadow-md select-none transition-colors">
                   <div>
                     <h2 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">
                       Scent Playback Station Requests
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Monitor kiosk queries, scent playback streams, and station dispatch alerts in real time.
+                      Monitor kiosk queries, scent playback streams, and station
+                      dispatch alerts in real time.
                     </p>
                   </div>
 
@@ -1398,7 +1649,8 @@ export default function AdminDashboard() {
                           : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-[#c19253]"
                       }`}
                     >
-                      Pending Queue ({requests.filter(r => !r.resolved).length})
+                      Pending Queue (
+                      {requests.filter((r) => !r.resolved).length})
                     </button>
                     <button
                       onClick={() => setShowResolvedRequests(true)}
@@ -1408,18 +1660,25 @@ export default function AdminDashboard() {
                           : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-[#c19253]"
                       }`}
                     >
-                      Resolved History ({requests.filter(r => r.resolved).length})
+                      Resolved History (
+                      {requests.filter((r) => r.resolved).length})
                     </button>
                   </div>
                 </div>
 
                 {/* requests database list grid */}
                 {loadingRequests ? (
-                   <div className="flex py-20 flex-col items-center justify-center gap-2">
-                     <Loader2 className="animate-spin text-[#c19253]" size={24} />
-                     <span className="text-xs font-mono text-slate-500">Retrieving playback log streams...</span>
-                   </div>
-                ) : requests.filter(r => r.resolved === showResolvedRequests).length === 0 ? (
+                  <div className="flex py-20 flex-col items-center justify-center gap-2">
+                    <Loader2
+                      className="animate-spin text-[#c19253]"
+                      size={24}
+                    />
+                    <span className="text-xs font-mono text-slate-500">
+                      Retrieving playback log streams...
+                    </span>
+                  </div>
+                ) : requests.filter((r) => r.resolved === showResolvedRequests)
+                    .length === 0 ? (
                   <div className="border border-slate-200 dark:border-[#c19253]/20 border-dashed rounded-xl p-16 text-center select-none bg-slate-100/30 dark:bg-black">
                     <p className="text-slate-500 dark:text-slate-400 text-sm">
                       {showResolvedRequests
@@ -1434,36 +1693,47 @@ export default function AdminDashboard() {
                         <thead>
                           <tr className="border-b border-slate-200 dark:border-[#c19253]/20 text-slate-500 dark:text-[#c19253] font-mono text-[10px] uppercase font-bold tracking-widest bg-slate-50 dark:bg-black">
                             <th className="py-4.5 px-6">Fragrance Name</th>
-                            <th className="py-4.5 px-6">Terminal / Station ID</th>
+                            <th className="py-4.5 px-6">
+                              Terminal / Station ID
+                            </th>
                             <th className="py-4.5 px-6">Requested Time</th>
-                            {showResolvedRequests && <th className="py-4.5 px-6">Resolved Time</th>}
+                            {showResolvedRequests && (
+                              <th className="py-4.5 px-6">Resolved Time</th>
+                            )}
                             <th className="py-4.5 px-6 text-center">Status</th>
-                            {!showResolvedRequests && <th className="py-4.5 px-6 text-center">Dispatch Action</th>}
+                            {!showResolvedRequests && (
+                              <th className="py-4.5 px-6 text-center">
+                                Dispatch Action
+                              </th>
+                            )}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-150 dark:divide-[#c19253]/15 font-sans text-xs">
                           {requests
                             .filter((r) => r.resolved === showResolvedRequests)
                             .map((req) => (
-                              <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-[#c19253]/5 transition-colors">
+                              <tr
+                                key={req.id}
+                                className="hover:bg-slate-50 dark:hover:bg-[#c19253]/5 transition-colors"
+                              >
                                 <td className="py-4.5 px-6 font-bold text-slate-800 dark:text-slate-100">
                                   {req.perfumeName}
                                 </td>
-                                
+
                                 <td className="py-4.5 px-6 font-mono font-bold text-slate-500 dark:text-slate-400">
                                   {req.station}
                                 </td>
- 
+
                                 <td className="py-4.5 px-6 text-slate-600 dark:text-zinc-305">
                                   {req.time}
                                 </td>
- 
+
                                 {showResolvedRequests && (
                                   <td className="py-4.5 px-6 text-slate-500 dark:text-zinc-400 font-mono">
                                     {req.resolvedAt || "N/A"}
                                   </td>
                                 )}
- 
+
                                 <td className="py-4.5 px-6 text-center">
                                   {req.resolved ? (
                                     <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30">
@@ -1475,11 +1745,13 @@ export default function AdminDashboard() {
                                     </span>
                                   )}
                                 </td>
- 
+
                                 {!showResolvedRequests && (
                                   <td className="py-4.5 px-6 text-center">
                                     <button
-                                      onClick={() => handleResolveRequest(req.id)}
+                                      onClick={() =>
+                                        handleResolveRequest(req.id)
+                                      }
                                       className="px-4 py-1 bg-[#c19253] hover:bg-[#b08142] text-black rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                                     >
                                       Mark Resolved
@@ -1495,7 +1767,7 @@ export default function AdminDashboard() {
                 )}
               </motion.div>
             )}
- 
+
             {/* TAB 4: WORKFORCE USER ACCOUNTS SETTINGS (ADMINS ONLY) */}
             {activeTab === "users" && currentUser?.role === "admin" && (
               <motion.div
@@ -1506,7 +1778,6 @@ export default function AdminDashboard() {
                 transition={{ duration: 0.2 }}
                 className="grid grid-cols-1 lg:grid-cols-3 gap-8 select-none"
               >
-                
                 {/* Account Provisioning box */}
                 <div className="lg:col-span-1 bg-[#FAF9F5] dark:bg-black border border-slate-200 dark:border-[#c19253]/25 p-6 rounded-xl shadow-lg h-fit space-y-5 transition-colors">
                   <div>
@@ -1514,11 +1785,15 @@ export default function AdminDashboard() {
                       Provision Work Station
                     </h2>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                      Instantly spawn new system records for internal employees or staff.
+                      Instantly spawn new system records for internal employees
+                      or staff.
                     </p>
                   </div>
 
-                  <form onSubmit={handleCreateUser} className="space-y-4 text-xs font-sans">
+                  <form
+                    onSubmit={handleCreateUser}
+                    className="space-y-4 text-xs font-sans"
+                  >
                     <div>
                       <label className="block text-[10px] uppercase font-mono tracking-wider font-bold text-slate-500 dark:text-[#c19253]/80 mb-1.5 pl-1">
                         Employee username
@@ -1599,22 +1874,32 @@ export default function AdminDashboard() {
 
                   {loadingUsers ? (
                     <div className="flex py-10 flex-col items-center justify-center gap-2">
-                      <Loader2 className="animate-spin text-[#c19253]" size={20} />
-                      <span className="text-[11px] font-mono text-slate-500">Retrieving system ledger...</span>
+                      <Loader2
+                        className="animate-spin text-[#c19253]"
+                        size={20}
+                      />
+                      <span className="text-[11px] font-mono text-slate-500">
+                        Retrieving system ledger...
+                      </span>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left font-sans text-xs">
                         <thead>
                           <tr className="border-b border-slate-200 dark:border-[#c19253]/20 text-slate-500 font-mono text-[9px] uppercase tracking-widest font-bold">
-                            <th className="pb-3 pl-2">System record / Account</th>
+                            <th className="pb-3 pl-2">
+                              System record / Account
+                            </th>
                             <th className="pb-3">Access Level</th>
                             <th className="pb-3 text-center">Revoke Account</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-150 dark:divide-[#c19253]/15 font-medium">
                           {staffUsers.map((item) => (
-                            <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-[#c19253]/5 transition-colors">
+                            <tr
+                              key={item.id}
+                              className="hover:bg-slate-50 dark:hover:bg-[#c19253]/5 transition-colors"
+                            >
                               <td className="py-3.5 pl-2 flex items-center gap-3">
                                 <span className="w-7 h-7 bg-slate-50 dark:bg-black border border-slate-200 dark:border-[#c19253]/25 text-slate-500 dark:text-[#c19253] flex items-center justify-center font-bold text-xs rounded-full">
                                   {item.username[0]?.toUpperCase()}
@@ -1630,11 +1915,13 @@ export default function AdminDashboard() {
                               </td>
 
                               <td className="py-3.5">
-                                <span className={`inline-block px-2.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-widest ${
-                                  item.role === 'admin' 
-                                    ? 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30' 
-                                    : 'bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/30'
-                                }`}>
+                                <span
+                                  className={`inline-block px-2.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-widest ${
+                                    item.role === "admin"
+                                      ? "bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30"
+                                      : "bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/30"
+                                  }`}
+                                >
                                   {item.role}
                                 </span>
                               </td>
@@ -1656,21 +1943,25 @@ export default function AdminDashboard() {
                   )}
 
                   <div className="p-4 bg-amber-550/5 dark:bg-black border border-slate-200 dark:border-[#c19253]/20 rounded-lg flex items-start gap-3 mt-4 text-[10px] text-slate-500 dark:text-slate-400">
-                    <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={14} />
+                    <AlertTriangle
+                      className="text-amber-500 flex-shrink-0 mt-0.5"
+                      size={14}
+                    />
                     <div className="leading-relaxed font-mono">
-                      <span>Operational Alert: Self-termination or termination of the final primary system administrator is programmatically locked out to prevent fatal workspace locks.</span>
+                      <span>
+                        Operational Alert: Self-termination or termination of
+                        the final primary system administrator is
+                        programmatically locked out to prevent fatal workspace
+                        locks.
+                      </span>
                     </div>
                   </div>
                 </div>
-
               </motion.div>
             )}
-
           </AnimatePresence>
-
         </div>
       </main>
-
     </div>
   );
 }

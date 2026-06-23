@@ -1,40 +1,26 @@
 import React from "react";
 import { motion } from "motion/react";
 import { SlidersHorizontal, Info } from "lucide-react";
-import { Category, Gender, Perfume } from "../types";
+import { useApp } from "../common/AppContext";
 import HorizontalSyncGallery from "../components/perfume/HorizontalSyncGallery";
 import { PerfumeCard } from "../components/perfume/PerfumeCard";
-import { cn } from "../lib/utils";
 
-interface CatalogGridProps {
-  filteredPerfumes: Perfume[];
-  loading: boolean;
-  colors: Record<string, string>;
-  isDarkMode: boolean;
-  activeCategory: Category | "All";
-  setActiveCategory: (cat: Category | "All") => void;
-  activeGender: Gender | "All";
-  setActiveGender: (gender: Gender | "All") => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  setInspectPerfume: (perfume: Perfume) => void;
-  catalogView: boolean;
-}
+export default function CatalogGrid() {
+  const {
+    filteredPerfumes,
+    loading,
+    colors,
+    isDarkMode,
+    activeCategory,
+    setActiveCategory,
+    activeGender,
+    setActiveGender,
+    searchQuery,
+    setSearchQuery,
+    setInspectPerfume,
+    catalogView,
+  } = useApp();
 
-export default function CatalogGrid({
-  filteredPerfumes,
-  loading,
-  colors,
-  isDarkMode,
-  activeCategory,
-  setActiveCategory,
-  activeGender,
-  setActiveGender,
-  searchQuery,
-  setSearchQuery,
-  setInspectPerfume,
-  catalogView,
-}: CatalogGridProps) {
   const activeFiltersCount =
     (activeCategory !== "All" ? 1 : 0) +
     (activeGender !== "All" ? 1 : 0) +

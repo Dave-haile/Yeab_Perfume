@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { Perfume } from "../types";
-import { INITIAL_PERFUMES, DEFAULT_ACCORD_COLORS } from "./data";
-
+import { Perfume, User, StaffRequest } from "../types";
+import { safeStorage } from "./storage";
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type UserRole = "admin" | "staff";
@@ -12,14 +11,6 @@ export interface AuthUser {
   username: string;
   role: UserRole;
 }
-
-// ─── In-memory mock DB (unchanged — used when VITE_API_URL is not set) ───────
-
-let mockPerfumesDb: Perfume[] = [...INITIAL_PERFUMES];
-let mockColorsDb: Record<string, string> = { ...DEFAULT_ACCORD_COLORS };
-let mockLogoDb: string | null = null;
-
-const MOCK_LATENCY_MS = 300;
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 
@@ -35,15 +26,18 @@ const MOCK_LATENCY_MS = 300;
  *
  * The tradeoff: refreshing the page logs them out. Acceptable here.
  */
-let _token: string | null = null;
 
 export const tokenStore = {
-  get: () => _token,
-  set: (t: string) => {
-    _token = t;
+  get(): string | null {
+    return safeStorage.getItem("adminToken");
   },
-  clear: () => {
-    _token = null;
+
+  set(token: string): void {
+    safeStorage.setItem("adminToken", token);
+  },
+
+  clear(): void {
+    safeStorage.removeItem("adminToken");
   },
 };
 
@@ -108,15 +102,20 @@ api.interceptors.response.use(
 export const authService = {
   /**
    * POST /api/auth/login
-   * Stores the returned token in memory and returns the user object.
+   * Stores the returned token and user in memory and returns the user object.
    */
-  async login(username: string, password: string): Promise<AuthUser> {
+  async login(
+    username: string,
+    password: string,
+  ): Promise<{ token: string; user: AuthUser }> {
     const response = await api.post<{ token: string; user: AuthUser }>(
       "/auth/login",
       { username, password },
     );
     tokenStore.set(response.data.token);
-    return response.data.user;
+    // Also store the user in safeStorage for dashboard access
+    safeStorage.setItem("adminUser", JSON.stringify(response.data.user));
+    return response.data;
   },
 
   /**
@@ -129,63 +128,43 @@ export const authService = {
     try {
       const response = await api.get<{ user: AuthUser }>("/auth/me");
       return response.data.user;
-    } catch {
+    } catch (err) {
+      console.log("me() failed", err);
       tokenStore.clear();
       return null;
     }
   },
 
-  /** Clears the token from memory. No server call needed. */
+  /** Clears the token and user from memory. No server call needed. */
   logout() {
     tokenStore.clear();
+    safeStorage.removeItem("adminUser");
   },
 };
 
-// ─── Perfume service (unchanged logic, now uses authenticated axios) ──────────
+// ─── Perfume service ─────────────────────────────────────────────────────────
 
 export const perfumeService = {
   async fetchAll(): Promise<Perfume[]> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.get<{ data: Perfume[] }>("/perfumes");
-      return response.data.data;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    return [...mockPerfumesDb];
+    const response = await api.get<{ data: Perfume[] }>("/perfumes");
+    return response.data.data;
   },
 
   async create(perfume: Omit<Perfume, "id">): Promise<Perfume> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.post<{ data: Perfume }>("/perfumes", perfume);
-      return response.data.data;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    const newPerfume = perfume as Perfume;
-    mockPerfumesDb = [newPerfume, ...mockPerfumesDb];
-    return newPerfume;
+    const response = await api.post<{ data: Perfume }>("/perfumes", perfume);
+    return response.data.data;
   },
 
   async update(id: string, perfume: Partial<Perfume>): Promise<Perfume> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.patch<{ data: Perfume }>(
-        `/perfumes/${id}`,
-        perfume,
-      );
-      return response.data.data;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    mockPerfumesDb = mockPerfumesDb.map((p) =>
-      p.id === id ? { ...p, ...perfume } : p,
+    const response = await api.patch<{ data: Perfume }>(
+      `/perfumes/${id}`,
+      perfume,
     );
-    return mockPerfumesDb.find((p) => p.id === id)!;
+    return response.data.data;
   },
 
   async delete(id: string): Promise<void> {
-    if (import.meta.env.VITE_API_URL) {
-      await api.delete(`/perfumes/${id}`);
-      return;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    mockPerfumesDb = mockPerfumesDb.filter((p) => p.id !== id);
+    await api.delete(`/perfumes/${id}`);
   },
 };
 
@@ -226,72 +205,97 @@ export const uploadService = {
   },
 };
 
-// ─── Config service (unchanged logic) ────────────────────────────────────────
+// ─── Config service ──────────────────────────────────────────────────────────
 
 export const configService = {
   async fetchColors(): Promise<Record<string, string>> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.get<Record<string, string>>("/colors");
-      return response.data;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    return { ...mockColorsDb };
+    const response = await api.get<Record<string, string>>("/colors");
+    return response.data;
   },
 
   async saveColors(
     colors: Record<string, string>,
   ): Promise<Record<string, string>> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.post<Record<string, string>>(
-        "/colors",
-        colors,
-      );
-      return response.data;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    mockColorsDb = { ...colors };
-    return mockColorsDb;
+    const response = await api.post<Record<string, string>>("/colors", colors);
+    return response.data;
   },
 
   async fetchLogo(): Promise<string | null> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.get<{ logo: string | null }>("/logo");
-      return response.data.logo;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    return mockLogoDb;
+    const response = await api.get<{ logo: string | null }>("/logo");
+    return response.data.logo;
   },
 
   async saveLogo(logo: string | null): Promise<string | null> {
-    if (import.meta.env.VITE_API_URL) {
-      const response = await api.post<{ logo: string | null }>("/logo", {
-        logo,
-      });
-      return response.data.logo;
-    }
-    await new Promise((r) => setTimeout(r, MOCK_LATENCY_MS));
-    mockLogoDb = logo;
-    return logo;
+    const response = await api.post<{ logo: string | null }>("/logo", {
+      logo,
+    });
+    return response.data.logo;
+  },
+};
+
+// ─── User (admin) service ──────────────────────────────────────────────────────
+
+export interface UserServiceResponse {
+  data: User[];
+}
+
+export const userService = {
+  async login(
+    username: string,
+    password: string,
+  ): Promise<{ token: string; user: AuthUser }> {
+    return authService.login(username, password);
+  },
+
+  async fetchAll(): Promise<User[]> {
+    const response = await api.get<UserServiceResponse>("/admin/users");
+    return response.data.data;
+  },
+
+  async create(
+    username: string,
+    password: string,
+    role: UserRole,
+  ): Promise<User> {
+    const response = await api.post<{ data: User }>("/admin/users", {
+      username,
+      password,
+      role,
+    });
+    return response.data.data;
+  },
+
+  async delete(id: string): Promise<void> {
+    await api.delete(`/admin/users/${id}`);
   },
 };
 
 // ─── Staff requests service ───────────────────────────────────────────────────
 
-export const staffRequestService = {
-  async getAll(includeResolved = false) {
-    const response = await api.get(
-      `/staff-requests${includeResolved ? "?includeResolved=true" : ""}`,
-    );
-    return response.data; // { data: StaffRequest[], pendingCount: number }
+export interface StaffRequestServiceResponse {
+  data: StaffRequest[];
+  pendingCount: number;
+}
+
+export const requestService = {
+  async fetchAll(): Promise<StaffRequest[]> {
+    const response =
+      await api.get<StaffRequestServiceResponse>("/staff-requests");
+    return response.data.data;
   },
 
   async create(perfumeId: string, station?: string) {
-    const response = await api.post("/staff-requests", { perfumeId, station });
+    const response = await api.post<{ data: StaffRequest }>("/staff-requests", {
+      perfumeId,
+      station,
+    });
     return response.data.data;
   },
 
   async resolve(id: string) {
-    const response = await api.patch(`/staff-requests/${id}/resolve`);
+    const response = await api.patch<{ data: StaffRequest }>(
+      `/staff-requests/${id}/resolve`,
+    );
     return response.data.data;
   },
 
@@ -328,9 +332,9 @@ export function useAuth() {
   }, []);
 
   const login = useCallback(async (username: string, password: string) => {
-    const u = await authService.login(username, password);
-    setUser(u);
-    return u;
+    const result = await authService.login(username, password);
+    setUser(result.user);
+    return result;
   }, []);
 
   const logout = useCallback(() => {
@@ -342,7 +346,7 @@ export function useAuth() {
 }
 
 /**
- * usePerfumes — unchanged API, existing components work without modification.
+ * usePerfumes — fetches perfumes from the real backend API.
  */
 export function usePerfumes() {
   const [perfumes, setPerfumesState] = useState<Perfume[]>([]);
@@ -360,7 +364,6 @@ export function usePerfumes() {
       })
       .catch(() => {
         if (active) {
-          setPerfumesState(INITIAL_PERFUMES);
           setLoading(false);
         }
       });
@@ -374,7 +377,6 @@ export function usePerfumes() {
   ) => {
     setPerfumesState((prev) => {
       const next = typeof update === "function" ? update(prev) : update;
-      mockPerfumesDb = next;
       return next;
     });
   };
@@ -383,7 +385,7 @@ export function usePerfumes() {
 }
 
 /**
- * useAccordColors — unchanged.
+ * useAccordColors — fetches accord colors from the real backend API.
  */
 export function useAccordColors() {
   const [colors, setColorsState] = useState<Record<string, string>>({});
@@ -395,9 +397,7 @@ export function useAccordColors() {
       .then((data) => {
         if (active) setColorsState(data);
       })
-      .catch(() => {
-        if (active) setColorsState(DEFAULT_ACCORD_COLORS);
-      });
+      .catch(() => {});
     return () => {
       active = false;
     };
@@ -410,7 +410,6 @@ export function useAccordColors() {
   ) => {
     setColorsState((prev) => {
       const next = typeof update === "function" ? update(prev) : update;
-      mockColorsDb = next;
       return next;
     });
   };
@@ -419,7 +418,7 @@ export function useAccordColors() {
 }
 
 /**
- * useLogo — unchanged.
+ * useLogo — fetches the logo from the real backend API.
  */
 export function useLogo() {
   const [logo, setLogoState] = useState<string | null>(null);
@@ -439,7 +438,6 @@ export function useLogo() {
 
   const setLogo = (newLogo: string | null) => {
     setLogoState(newLogo);
-    mockLogoDb = newLogo;
   };
 
   return { logo, setLogo };

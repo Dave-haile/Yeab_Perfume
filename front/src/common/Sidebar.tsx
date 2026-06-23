@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Category } from "../types";
+import { useApp } from "./AppContext";
 import { cn } from "../lib/utils";
 import {
   Droplet,
@@ -11,44 +11,16 @@ import {
   PanelLeftClose,
 } from "lucide-react";
 
-interface SidebarProps {
-  activeCategory: Category | "All";
-  setActiveCategory: (cat: Category | "All") => void;
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  logo: string | null;
-  onOpenAdmin?: () => void;
-  currentView?:
-    | "catalog"
-    | "presenter"
-    | "admin"
-    | "brand-presenter"
-    | "luxury-presenter";
-  setCurrentView?: (
-    view:
-      | "catalog"
-      | "presenter"
-      | "admin"
-      | "brand-presenter"
-      | "luxury-presenter",
-  ) => void;
-  isDarkMode?: boolean;
-  isSidebarVisible?: boolean;
-  setIsSidebarVisible?: (visible: boolean) => void;
-}
-
-export default function Sidebar({
-  activeCategory,
-  setActiveCategory,
-  isOpen,
-  setIsOpen,
-  logo,
-  isDarkMode = false,
-  isSidebarVisible = true,
-  setIsSidebarVisible,
-}: SidebarProps) {
+export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const {
+    logo,
+    setIsSidebarOpen,
+    setIsSidebarVisible,
+    isSidebarVisible,
+    isSidebarOpen,
+  } = useApp();
 
   const currentView =
     location.pathname === "/view/presenter"
@@ -57,9 +29,7 @@ export default function Sidebar({
         ? "brand-presenter"
         : location.pathname === "/view/luxury"
           ? "luxury-presenter"
-          : location.pathname === "/view/admin"
-            ? "admin"
-            : "catalog";
+          : "catalog";
 
   const categories: {
     id: "perfumes" | "brand_perfume" | "luxury_perfume";
@@ -97,10 +67,8 @@ export default function Sidebar({
           </span>
           <button
             onClick={() => {
-              setIsOpen(false);
-              if (setIsSidebarVisible) {
-                setIsSidebarVisible(false);
-              }
+              setIsSidebarOpen(false);
+              setIsSidebarVisible(false);
             }}
             className="p-1.5 rounded-full transition-colors hover:bg-gray-200/50 dark:hover:bg-[#c19253]/10 text-[#111111] dark:text-white"
             title="Hide Sidebar"
@@ -166,14 +134,13 @@ export default function Sidebar({
                   key={cat.id}
                   onClick={() => {
                     if (cat.id === "perfumes") {
-                      setActiveCategory("All");
                       navigate("/view/grid");
                     } else if (cat.id === "brand_perfume") {
                       navigate("/view/brand");
                     } else if (cat.id === "luxury_perfume") {
                       navigate("/view/luxury");
                     }
-                    setIsOpen(false);
+                    setIsSidebarOpen(false);
                   }}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-300 group",
@@ -218,21 +185,16 @@ export default function Sidebar({
       <div className="space-y-3 border-t pt-6 border-[#ecebe7] dark:border-[#c19253]/25">
         <button
           onClick={() => {
-            navigate("/view/admin");
-            setIsOpen(false);
+            navigate("/admin/login");
+            setIsSidebarOpen(false);
           }}
           className={cn(
             "w-full flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-bold tracking-widest uppercase transition-all duration-300",
-            currentView === "admin"
-              ? "bg-[#c19253] text-[#09070f] dark:text-black shadow-lg shadow-[#c19253]/25 font-black"
-              : "border border-[#e5e4de] hover:border-black/20 text-gray-500 hover:text-[#111111] bg-white hover:bg-gray-50 dark:border-[#c19253]/30 dark:hover:border-[#c19253] dark:text-gray-400 dark:hover:text-[#c19253] dark:bg-black dark:hover:bg-[#c19253]/10",
+            "border border-[#e5e4de] hover:border-black/20 text-gray-500 hover:text-[#111111] bg-white hover:bg-gray-50 dark:border-[#c19253]/30 dark:hover:border-[#c19253] dark:text-gray-400 dark:hover:text-[#c19253] dark:bg-black dark:hover:bg-[#c19253]/10",
           )}
         >
-          <Settings
-            size={14}
-            className={currentView === "admin" ? "animate-spin-slow" : ""}
-          />
-          Atelier formulation
+          <Settings size={14} />
+          Atelier Control Centre
         </button>
         <p className="text-[8px] text-center text-gray-400 font-medium font-mono uppercase tracking-widest">
           EST. 2026 • ADDIS ABABA
@@ -251,11 +213,11 @@ export default function Sidebar({
       )}
 
       {/* Mobile Sidebar overlay slideout */}
-      {isOpen && (
+      {isSidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsOpen(false)}
+            onClick={() => setIsSidebarOpen(false)}
           />
           <div className="relative w-[300px] max-w-[85vw] h-full shadow-2xl flex flex-col z-10 transition-transform">
             {sidebarContent}

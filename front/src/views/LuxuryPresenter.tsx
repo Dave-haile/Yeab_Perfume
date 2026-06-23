@@ -1,23 +1,14 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Info } from 'lucide-react';
-import { Perfume } from '../types';
-import PerfumeSlide from '../components/perfume/PerfumeSlide';
+import React from "react";
+import { motion } from "motion/react";
+import { Info } from "lucide-react";
+import { useApp } from "../common/AppContext";
+import PerfumeSlide from "../components/perfume/PerfumeSlide";
 
-interface LuxuryPresenterProps {
-  perfumes: Perfume[];
-  colors: Record<string, string>;
-  setInspectPerfume: (p: Perfume) => void;
-  isDarkMode: boolean;
-}
-
-export default function LuxuryPresenter({
-  perfumes,
-  colors,
-  setInspectPerfume,
-  isDarkMode
-}: LuxuryPresenterProps) {
-  const luxuryPerfumes = perfumes.filter(p => p.category === 'Luxury Perfume');
+export default function LuxuryPresenter() {
+  const { perfumes, colors, setInspectPerfume, isDarkMode } = useApp();
+  const luxuryPerfumes = perfumes.filter(
+    (p) => p.category === "Luxury Perfume",
+  );
 
   return (
     <motion.div
@@ -37,14 +28,18 @@ export default function LuxuryPresenter({
         </h3>
         <div className="h-[1px] w-24 bg-[#c19253] mx-auto mt-2" />
         <p className="text-xs text-gray-400 max-w-md mx-auto">
-          Scroll through our most precious, rare, and masterfully formulated private luxury essences.
+          Scroll through our most precious, rare, and masterfully formulated
+          private luxury essences.
         </p>
       </div>
 
       {luxuryPerfumes.length > 0 ? (
         <div className="flex flex-col gap-10 w-full max-w-4xl mx-auto pb-16">
           {luxuryPerfumes.map((perfume) => (
-            <div key={perfume.id} className="transition-all duration-300 hover:translate-y-[-2px]">
+            <div
+              key={perfume.id}
+              className="transition-all duration-300 hover:translate-y-[-2px]"
+            >
               <PerfumeSlide
                 perfume={perfume}
                 colors={colors}
@@ -62,7 +57,8 @@ export default function LuxuryPresenter({
             No Luxury Blends Found
           </h4>
           <p className="text-xs leading-relaxed mb-6 text-gray-500 dark:text-gray-400">
-            No luxury perfumes are currently formulated. Add an Exclusive Private Row inside the formulations atelier portal.
+            No luxury perfumes are currently formulated. Add an Exclusive
+            Private Row inside the formulations atelier portal.
           </p>
         </div>
       )}
