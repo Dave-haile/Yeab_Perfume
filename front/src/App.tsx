@@ -8,27 +8,11 @@ import {
 } from "react-router-dom";
 import { usePerfumes, useAccordColors, useLogo } from "./lib/api";
 import { Category, Gender, Perfume } from "./types";
-import Sidebar from "./common/Sidebar";
 import TopTabs from "./common/TopTabs";
 import CategoryTabs from "./components/layout/CategoryTabs";
 import PerfumeDetailsModal from "./components/perfume/PerfumeDetailsModal";
 import { motion, AnimatePresence } from "motion/react";
-import {
-  Grid,
-  Eye,
-  Menu,
-  Sparkles,
-  SlidersHorizontal,
-  Settings,
-  Info,
-  ShoppingCart,
-  Award,
-  Moon,
-  Sun,
-  PanelLeftOpen,
-} from "lucide-react";
 import { useTheme } from "./components/ThemeProvider";
-import { cn } from "./lib/utils";
 
 // Page Views
 import CatalogGrid from "./views/CatalogGrid";
